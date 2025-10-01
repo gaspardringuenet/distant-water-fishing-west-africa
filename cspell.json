@@ -1,0 +1,14 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "dictionaries": [
+    "en_US",
+    "fr_FR"
+  ],
+  "files": [
+    "**/*.qmd",
+    "**/*.md"
+  ],
+  "enabled": true,
+  "allowCompoundWords": true
+}

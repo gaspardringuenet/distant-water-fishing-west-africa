@@ -1,0 +1,2400 @@
+---
+title: "Figures"
+project:
+  execute-dir: project
+format:
+  pdf:
+    documentclass: scrreprt
+    toc: true
+    fontsize: 12pt
+    mainfont: Arial
+    link-citations: true
+    fig-pos: "H"
+    tbl-pos: "H"
+    geometry:
+      - inner=2.5cm
+      - outer=2.5cm
+      - top=2.5cm
+      - bottom=2.5cm
+      - headsep=10pt
+      - headheight=6pt
+      - footskip=33pt
+      - ignorehead
+      - ignorefoot
+      - heightrounded
+results: hide
+fig-show: hide
+message: false
+warning: false
+---
+
+```{r}
+#| include: false
+
+library(readr)
+library(openxlsx)
+library(dplyr)
+library(ggplot2)
+library(sf)
+library(patchwork)
+library(tidyr)
+library(tidytext)
+library(units)
+library(scales)
+library(forcats)
+library(rnaturalearth)
+library(ggrepel)
+library(stringr)
+library(countrycode)
+library(knitr)
+library(kableExtra)
+library(grafify)
+
+source("src/0-utils/gfwr_map_utils.R")
+source("src/0-utils/fleet_ecoregionalization_utils.R")
+```
+
+```{r}
+#| include: false
+
+fao34_sf <- st_read("data/shapefiles/FAO_AREAS_CWP_NOCOASTLINE/FAO_AREAS_CWP_NOCOASTLINE.shp") |> filter(F_CODE == 34)
+eez_sf <- st_read("data/shapefiles/FAO34_EEZ/eez_fao34.shp")
+eez_overlap_sf <- eez_sf |>
+  st_intersection(fao34_sf |> dplyr::select(geometry))
+
+west_africa_flags <- c("MAR", "ESH", "MRT", "SEN", "GMB", "GNB",
+                       "GIN", "SLE", "LBR", "CPV", "CIV", "GHA",
+                       "TGO", "BEN", "NGA", "CMR", "STP", "GNQ",
+                       "GAB", "COD", "COG", "AGO")
+```
+
+## Effort de pêche et capacité
+
+```{r}
+#| include: false
+
+effort_ds <- readRDS("output/clean_data/apparent_fishing_effort.rds")
+```
+
+```{r}
+#| include: false
+
+
+total_hours_per_y <- sum(effort_ds$clean_effort$apparent_fishing_hours, na.rm = TRUE) / 5
+total_kWh_per_y = sum(effort_ds$clean_effort$kWh, na.rm = TRUE) / 5
+total_n_mmsi = n_distinct(effort_ds$clean_effort$mmsi, na.rm = TRUE)
+
+create_summary <- function(effort, grouping, total_n_mmsi, total_hours_per_y, total_kWh_per_y, top_n = 10, weighted = FALSE) {
+
+  weighted_sd <- function(x, w) {
+    m <- weighted.mean(x, w, na.rm = TRUE)
+    sqrt(sum(w * (x - m)^2, na.rm = TRUE) / sum(w, na.rm = TRUE))
+  }
+
+  base_summary <- effort |> 
+    group_by({{grouping}}) |> 
+    summarize(
+      n_mmsi = n_distinct(mmsi),
+      n_with_info = n_distinct(mmsi[!is.na(length_m_gfw) & !is.na(tonnage_gt_gfw) & !is.na(engine_power_kw_gfw)]),
+      n_mmsi_percent = 100 * n_mmsi / total_n_mmsi,
+      LOA   = if (weighted) weighted.mean(length_m_gfw, apparent_fishing_hours, na.rm = TRUE) else mean(length_m_gfw, na.rm = TRUE),
+      LOA_sd = if (weighted) weighted_sd(length_m_gfw, apparent_fishing_hours) else sd(length_m_gfw, na.rm = TRUE),
+      GT    = if (weighted) weighted.mean(tonnage_gt_gfw, apparent_fishing_hours, na.rm = TRUE) else mean(tonnage_gt_gfw, na.rm = TRUE),
+      GT_sd  = if (weighted) weighted_sd(tonnage_gt_gfw, apparent_fishing_hours) else sd(tonnage_gt_gfw, na.rm = TRUE),
+      kW    = if (weighted) weighted.mean(engine_power_kw_gfw, apparent_fishing_hours, na.rm = TRUE) else mean(engine_power_kw_gfw, na.rm = TRUE),
+      kW_sd  = if (weighted) weighted_sd(engine_power_kw_gfw, apparent_fishing_hours) else sd(engine_power_kw_gfw, na.rm = TRUE),
+      .groups = "drop"
+    )
+
+  effort_summary <- effort |> 
+    group_by({{grouping}}) |> 
+    summarize(
+      hours_per_y = sum(apparent_fishing_hours, na.rm = TRUE) / 5,
+      hours_per_y_percent = 100 * hours_per_y / total_hours_per_y,
+      kWh_per_y = sum(kWh, na.rm = TRUE) / 5,
+      kWh_per_y_percent = 100 * kWh_per_y / total_kWh_per_y,
+      .groups = "drop"
+    )
+
+  left_join(base_summary, effort_summary, by = rlang::as_name(ensym(grouping))) |> 
+    arrange(desc(hours_per_y)) |> 
+    head(top_n) |> 
+    mutate(
+      `Navires (%)` = paste0(n_mmsi, " (", round(n_mmsi_percent, 1), " %)"),
+      `avec capacité` = n_with_info,
+      `LOA ± σ` = paste0(round(LOA, 1), " ± ", round(LOA_sd, 1)),
+      `GT ± σ` = paste0(round(GT), " ± ", round(GT_sd)),
+      `kW ± σ` = paste0(round(kW), " ± ", round(kW_sd)),
+      `Heures de pêche par an (%)` = paste0(scales::scientific(hours_per_y, digits = 2), " (", round(hours_per_y_percent, 1), " %)"),
+      `kW.heures par an (%)` = paste0(scales::scientific(kWh_per_y, digits = 2), " (", round(kWh_per_y_percent, 1), " %)")
+    ) |> 
+    dplyr::select(-c(n_mmsi, n_mmsi_percent, n_with_info,
+                     LOA, LOA_sd, GT, GT_sd, kW, kW_sd,
+                     hours_per_y, hours_per_y_percent, kWh_per_y, kWh_per_y_percent)) |> 
+    rename(Groupe = {{ grouping }})
+}
+```
+
+```{r}
+#| echo: false
+
+summary_tot <- effort_ds$clean_effort |> 
+  mutate(group = "") |> 
+  create_summary(grouping = group,
+                 total_n_mmsi = total_n_mmsi,
+                 total_hours_per_y = total_hours_per_y, 
+                 total_kWh_per_y = total_kWh_per_y)
+
+summary_by_region_type <- effort_ds$clean_effort |> 
+  create_summary(grouping = region_type_fr, 
+                 total_n_mmsi = total_n_mmsi,
+                 total_hours_per_y = total_hours_per_y, 
+                 total_kWh_per_y = total_kWh_per_y,
+                 weighted = TRUE)
+
+summary_by_origin_type <- effort_ds$clean_effort |> 
+  create_summary(grouping = origin_type_fr, 
+                 total_n_mmsi = total_n_mmsi,
+                 total_hours_per_y = total_hours_per_y, 
+                 total_kWh_per_y = total_kWh_per_y,
+                 weighted = TRUE)
+
+summary_by_gear_type <- effort_ds$clean_effort |> 
+  create_summary(grouping = gear_type_fr, 
+                 total_n_mmsi = total_n_mmsi,
+                 total_hours_per_y = total_hours_per_y, 
+                 total_kWh_per_y = total_kWh_per_y)
+
+summary_by_eez <- effort_ds$clean_effort |> 
+  create_summary(grouping = eez_name, 
+                 total_n_mmsi = total_n_mmsi,
+                 total_hours_per_y = total_hours_per_y, 
+                 total_kWh_per_y = total_kWh_per_y,
+                 top_n = 11,
+                 weighted = TRUE) |> 
+  filter(!is.na(Groupe))
+
+summary_by_flag <- effort_ds$clean_effort |> 
+  create_summary(grouping = flag, 
+                 total_n_mmsi = total_n_mmsi,
+                 total_hours_per_y = total_hours_per_y, 
+                 total_kWh_per_y = total_kWh_per_y,
+                 top_n = 13) |> 
+  mutate(
+    Groupe = countrycode(Groupe, origin = "country.name", destination = "country.name.fr"),
+    Groupe = ifelse(is.na(Groupe), "Inconnu", Groupe)
+  )
+
+# Combine the data
+summary_tot <- summary_tot |> mutate(section = "Total FAO n°34")
+summary_by_region_type <- summary_by_region_type |> mutate(section = "Zone de pêche")
+summary_by_origin_type <- summary_by_origin_type |> mutate(section = "Origine du pavillon")
+summary_by_gear_type <- summary_by_gear_type |> mutate(section = "Type d’engin")
+summary_by_eez <- summary_by_eez |> mutate(section = "ZEE")
+summary_by_flag <- summary_by_flag |> mutate(section = "Pavillon")
+combined <- bind_rows(
+  summary_tot,
+  summary_by_region_type,
+  summary_by_origin_type,
+  summary_by_gear_type,
+  #summary_by_eez,
+  summary_by_flag
+  ) |> 
+  mutate(
+    Groupe = ifelse((is.na(Groupe) & section == "Origine du pavillon"), "Indécidable", Groupe)
+  ) |> 
+  dplyr::select(-section)
+
+# Count rows for grouping
+tot_stop <- 1
+region_stop <- tot_stop + nrow(summary_by_region_type)
+origin_stop <- region_stop + nrow(summary_by_origin_type)
+gear_stop <- origin_stop + nrow(summary_by_gear_type)
+#eez_stop <- gear_stop + nrow(summary_by_eez)
+flag_stop <- gear_stop + nrow(summary_by_flag)
+
+# Create and save the table as latex
+tbl <- combined |>
+  kable(
+    format = "latex",
+    booktabs = TRUE,
+    align = "lrrrrrrr",
+    escape = TRUE,
+    linesep = ""
+  ) |>
+  pack_rows("Total", 1, tot_stop, latex_gap_space = "0.3em") |>
+  pack_rows("Zone de pêche*", tot_stop + 1, region_stop, latex_gap_space = "0.3em") |>
+  pack_rows("Origine du pavillon*", region_stop + 1, origin_stop, latex_gap_space = "0.3em") |>
+  pack_rows("Type d’engin", origin_stop + 1, gear_stop, latex_gap_space = "0.3em") |>
+  #pack_rows("ZEE", gear_stop + 1, eez_stop, latex_gap_space = "0.3em") |>
+  pack_rows("Pavillon", gear_stop + 1, flag_stop, latex_gap_space = "0.3em") |>
+  kable_styling(
+    latex_options = c("Hold_position", "striped", "scale_down")
+  )
+saveRDS(tbl, "tables/capacity_summary_latex.rds")
+```
+
+### Description générale de l'effort
+
+```{r}
+#| include: false
+
+
+colormap = c("Domestique" = "#009E73",
+             "Distante (pavillon ouest-africain)" = "#56B4E9",
+             "Distante (autre)" = "#E69F00",
+             "ZEE étrangère" = "#E69F00",
+             "Haute mer" = "navy")
+
+data <- effort_ds$clean_effort |> 
+  summarize(
+    apparent_fishing_hours = sum(apparent_fishing_hours, na.rm = TRUE),
+    kWh = sum(kWh, na.rm = TRUE),
+    .by = c(region_type_fr, origin_type_fr)
+  ) |>
+  mutate(
+    hours_percent = 100 * apparent_fishing_hours / sum(apparent_fishing_hours),
+    kWh_percent = 100 * kWh / sum(kWh)
+  )
+
+p1.1 <- data |> 
+  dplyr::select(-c(hours_percent, kWh_percent)) |> 
+  pivot_longer(cols = c(apparent_fishing_hours, kWh)) |> 
+  mutate(
+    name = case_when(
+      name == "apparent_fishing_hours" ~ "'h.an'^-1",
+      name == "kWh" ~ "'kW.h.an'^-1"
+    ),
+    value = value / 5
+  ) |> 
+  ggplot(aes(x = region_type_fr, y = value, fill = origin_type_fr)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = colormap) +
+  scale_y_continuous(labels = scientific_format(digits = 2)) +
+  labs(x = "", y = "", fill = "Origine du pavillon\n(a, c, d)") + 
+  facet_wrap(~ name, scales = "free_y", labeller = label_parsed) +
+  theme_minimal()
+
+data <- effort_ds$clean_effort |> 
+  summarize(
+    apparent_fishing_hours = sum(apparent_fishing_hours, na.rm = TRUE),
+    kWh = sum(kWh, na.rm = TRUE),
+    .by = gear_type_fr
+  ) |>
+  arrange(desc(kWh)) |> 
+  mutate(
+    gear_type_fr = case_when(
+      gear_type_fr == "Sennes coulissantes au thon" ~ "Sennes coulissantes\nau thon",
+      #gear_type_fr == "Lignes et hameçons" ~ "Lignes et\nhameçons",
+      TRUE ~ gear_type_fr
+    )
+  )
+
+gear_type_levels <- data$gear_type_fr
+
+data <- data |> 
+  mutate( 
+    gear_type_fr = factor(gear_type_fr, levels = rev(gear_type_levels)),
+    hours_percent = 100 * apparent_fishing_hours / sum(apparent_fishing_hours),
+    kWh_percent = 100 * kWh / sum(kWh)
+  )
+
+data_long <- data |> 
+  pivot_longer(cols = c(hours_percent, kWh_percent)) |>
+  mutate(
+    name = case_when(
+      name == "hours_percent" ~ "Heures",
+      name == "kWh_percent" ~ "kW.heures"
+    )
+  )
+
+label_positions <- data_long |>
+  group_by(gear_type_fr) |>
+  summarise(max_value = max(value))
+
+p1.2 <- ggplot(data_long, aes(x = gear_type_fr, y = value, fill = name)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(
+    data = label_positions,
+    aes(x = gear_type_fr, y = 99, label = gear_type_fr),  # Near max value but still inside
+    inherit.aes = FALSE,
+    hjust = 1,  # Right-align
+    size = 3.2
+  ) +
+  scale_fill_grey() +
+  ylim(0, 100) +
+  coord_flip(clip = "off") +
+  labs(x = "", y = "Part de l'effort total (%)",
+       fill = "Variable d'effort\n(b)") +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+```
+
+```{r}
+#| include: false 
+
+eez_areas <- eez_sf |>
+  filter(POL_TYPE != "Joint regime", !is.na(ISO_TER1)) |> 
+  mutate(area_m2 = drop_units(st_area(geometry))) |> 
+  dplyr::select(ISO_TER1, area_m2) |>
+  st_drop_geometry()
+
+data <- effort_ds$clean_effort |>
+  filter(region_type_fr == "ZEE") |> 
+  summarize(kWh = sum(kWh, na.rm = TRUE),
+            .by = c(eez_iso3c, origin_type_fr)) |>
+  group_by(eez_iso3c) |> 
+  mutate(total_kWh_eez = sum(kWh)) |> 
+  ungroup() |> 
+  left_join(eez_areas,
+            by = join_by(eez_iso3c == ISO_TER1)) |> 
+  mutate(
+    kWh_y = kWh / 5 ,
+    total_kWh_eez_y = total_kWh_eez / 5,
+    kWh_per_m2_y = kWh_y / area_m2,
+    total_kWh_eez_per_m2_y = total_kWh_eez_y / area_m2
+  )
+
+p2.1 <- ggplot(data, aes(x = fct_reorder(eez_iso3c, total_kWh_eez_y), y = kWh_y, fill = origin_type_fr)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(
+    x = "ZEE ciblée", y = expression(kW %.% h %.% an^{-1}),
+    fill = "Origine du pavillon\n(a, c, d)"
+  ) +
+  scale_fill_manual(values = colormap) +
+  theme_minimal()
+
+p2.2 <- ggplot(data, aes(x = fct_reorder(eez_iso3c, total_kWh_eez_per_m2_y), y = kWh_per_m2_y, fill = origin_type_fr)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(
+    x = "ZEE ciblée", y = expression(kW %.% h %.% m^{-2}%.% an^{-1}),
+    fill = "Origine du pavillon\n(a, c, d)"
+  ) +
+  scale_fill_manual(values = colormap) +
+  theme_minimal()
+
+# Effort by fishing nation
+
+top_95_percent <- effort_ds$clean_effort |> 
+  filter(!is.na(flag_iso3c)) |> 
+  summarize(
+    hours = sum(apparent_fishing_hours),
+    kWh = sum(kWh, na.rm = TRUE),
+    .by = flag_iso3c
+  ) |>
+  arrange(desc(hours)) |> 
+  mutate(
+    cumulated_hours = cumsum(hours),
+    cumulated_hours_percent = 100 * cumulated_hours  / sum(hours)
+  ) |> 
+  arrange(desc(kWh)) |> 
+  mutate(
+    cumulated_kWh = cumsum(kWh),
+    cumulated_kWh_percent = 100 * cumulated_kWh  / sum(kWh)
+    ) |> 
+  filter(cumulated_kWh_percent < 95.5)
+
+data <- effort_ds$clean_effort |> 
+  #filter(flag_iso3c %in% unique(top_95_percent$flag_iso3c)) |> 
+  summarize(apparent_fishing_hours_y = sum(apparent_fishing_hours) / 5,
+            kWh_y = sum(kWh, na.rm = TRUE) / 5,
+            .by = c(flag_iso3c, destination_type_fr)) |> 
+  group_by(flag_iso3c) |> 
+  mutate(
+    total_hours_flag_y = sum(apparent_fishing_hours_y),
+    total_kWh_flag_y = sum(kWh_y)
+  ) |> 
+  ungroup()
+
+p2.3 <- ggplot(data, aes(x = fct_reorder(flag_iso3c, total_kWh_flag_y), y = kWh_y,
+                 fill = destination_type_fr)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = colormap) +
+  scale_y_continuous(labels = scientific_format()) +
+  coord_flip() +
+    labs(
+    x = "Pavillon", y = expression(kW %.% h %.% an^{-1}),
+    fill = "Zone ciblée\n(e)"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+#| echo: false
+
+# Create named plot list
+plots <- list(
+  A = p1.1,
+  B = p1.2,
+  C = p2.1,
+  D = p2.2,
+  E = p2.3
+)
+
+# Define layout
+layout_design <- "
+AB
+CE
+DE
+"
+
+# Assemble main plot
+final_plot <- wrap_plots(
+  plots, 
+  design = layout_design,
+  guides = "collect"
+) +
+  plot_annotation(tag_levels = 'a')
+
+# Display
+ggsave("figures/effort_summary.png",
+       final_plot,
+       height = 26,
+       width = 26,
+       unit = "cm",
+       dpi = 300)
+```
+
+```{r}
+#| include: false
+
+library(colorspace)
+
+rgb_data <- effort_ds$clean_effort |>
+  group_by(lat, lon, origin_type_fr) |>
+  summarise(kWh = sum(kWh, na.rm = TRUE), .groups = "drop") |>
+  pivot_wider(names_from = origin_type_fr, values_from = kWh, values_fill = 0) |>
+  mutate(
+    waf = `Distante (pavillon ouest-africain)`,
+    other = `Distante (autre)`,
+    dom = Domestique,
+    total = waf + other + dom,
+    p_waf = waf / total,
+    p_other = other / total,
+    p_dom = dom / total,
+
+    # RGB mixing: assign R = other, G = dom, B = waf
+    R = p_other,
+    G = p_dom,
+    B = p_waf
+  )
+
+# Create RGB object
+rgb_matrix <- with(rgb_data, colorspace::RGB(R, G, B))
+
+# Convert to HCL (polarLUV)
+hcl_matrix <- as(rgb_matrix, "polarLUV")
+
+# Extract HCL components
+rgb_data$hue_deg <- hcl_matrix@coords[,3] - 45
+rgb_data$chroma <- 60 
+rgb_data$luminance <- scales::rescale(log1p(rgb_data$total), to = c(0, 100))
+
+# Final color
+rgb_data$fill <- hcl(
+  h = rgb_data$hue_deg,
+  c = rgb_data$chroma,
+  l = rgb_data$luminance
+)
+
+# Plot
+
+bbox <- st_bbox(fao34_sf)
+
+rgb_map <- ggplot(rgb_data) +
+  geom_sf(data = fao34_sf, fill = "black", color = NA) +
+  geom_raster(aes(x = lon, y = lat, fill = fill)) +
+  scale_fill_identity() +  # Use actual RGB colors
+  geom_sf(data = eez_overlap_sf, color = "white", fill = NA, size = 0.2) +
+  geom_sf(data = ne_countries(returnclass = "sf", scale = "medium")) +
+  coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]),
+           ylim = c(bbox["ymin"], bbox["ymax"])) +
+  labs(x = "", y = "") +
+  theme_minimal(base_family = "sans")
+
+output_file <- "figures/map_effort_by_origin_type_rbg_hcl.png"
+ggsave(output_file, plot = rgb_map, width = 12, height = 8, dpi = 300)
+if (!file.exists(output_file)) {
+  ggsave(output_file, plot = rgb_map, width = 12, height = 8, dpi = 300)
+}
+```
+
+```{r}
+
+library(ggtern)
+library(colorspace)
+library(scales)
+library(dplyr)
+
+# Create a fine grid of ternary compositions
+steps <- 150
+grid <- expand.grid(
+  p_dom = seq(0, 1, length.out = steps),
+  p_other = seq(0, 1, length.out = steps)
+) %>%
+  mutate(
+    p_waf = 1 - p_dom - p_other
+  ) %>%
+  filter(p_waf >= 0)
+
+# Compute RGB components (R = Other, G = Domestic, B = WAF)
+grid$R <- grid$p_other
+grid$G <- grid$p_dom
+grid$B <- grid$p_waf
+grid$fill_rgb <- rgb(grid$R, grid$G, grid$B)
+
+# Construct RGB matrix outside mutate
+rgb_matrix <- with(grid, colorspace::RGB(R, G, B))
+
+# Convert to HCL
+hcl_matrix <- as(rgb_matrix, "polarLUV")
+
+# Extract HCL components and compute final color
+grid$hue <- hcl_matrix@coords[, 3] - 45
+grid$chroma <- 60
+grid$luminance <- 70 # constant luminance for clarity
+grid$fill <- hcl(h = grid$hue, c = grid$chroma, l = grid$luminance)
+
+# Plot as smooth ternary tile grid
+ternary_legend <- ggtern(data = grid, aes(x = G, y = R, z = B)) +
+  geom_point(aes(color = fill), size = 0.5, shape = 15) +
+  scale_color_identity() +
+  labs(
+    x = "Dom",
+    y = "Dist autre",
+    z = "Dist Af"
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = "none"
+  )
+
+ggsave("figures/ternary_legend_rbg_hcl.png",
+       plot = ternary_legend, 
+       height = 10,
+       width = 15,
+       units = "cm",
+       dpi = 300)
+
+
+ternary_dist <- ggtern(data = rgb_data, aes(x = G, y = R, z = B)) +
+  geom_hex_tern(aes(fill = after_stat(count)), bins = 20) +
+  scale_fill_viridis_c(
+    trans = "log1p",
+    breaks = c(1e3, 1e4, 5e4),
+    labels = label_scientific()
+  ) +
+  labs(
+    x = "Dom.",
+    y = "Dist. autre",
+    z = "Dist. Af.",
+    fill = "Cellules"
+  ) +
+  theme_bw()
+
+ggsave("figures/ternary_distribution.png",
+       plot = ternary_dist, 
+       height = 10,
+       width = 15,
+       units = "cm",
+       dpi = 300)
+```
+
+![](figures/ternary_legend_rbg_hcl.png){width="10cm"}
+
+![](figures/ternary_distribution.png){width="10cm"}
+
+```{r}
+#| echo: false
+
+new_colormap <- c(
+  "Domestique" = grid |> filter(p_dom == 1) |> pull(fill),
+  "Distante (pavillon ouest-africain)" = grid |> filter(p_waf == 1) |> pull(fill),
+  "Distante (autre)" = grid |> filter(p_other == 1) |> pull(fill)
+)
+
+plots <- list(
+  A = rgb_map,
+  B =  p2.1 + labs(fill = "Origine du pavillon") + scale_fill_manual(values = new_colormap),
+  C =  p2.2 + labs(fill = "Origine du pavillon") + scale_fill_manual(values = new_colormap)
+)
+
+# Define layout
+layout_design <- "
+AAAB
+AAAC
+"
+
+# Assemble main plot
+final_plot <- wrap_plots(
+  plots, 
+  design = layout_design,
+  guides = "collect"
+) +
+  plot_annotation(tag_levels = 'a') &
+  theme(legend.position = "bottom")
+
+ggsave("figures/rgb_map_and_eez_effort.png",
+       final_plot,
+       height = 20,
+       width = 35,
+       unit = "cm",
+       dpi = 300)
+```
+
+![](figures/rgb_map_and_eez_effort.png){fig-align="center" width="16cm"}
+
+Version pour daltoniens
+
+```{r}
+#| include: false
+
+bbox <- st_bbox(fao34_sf)
+
+map <- effort_ds$clean_effort |>
+  summarize(
+    kWh = sum(kWh, na.rm = TRUE),
+    .by = c(lat, lon, origin_type_fr)
+  ) |>
+  ggplot() +
+  geom_sf(data = fao34_sf, fill = "black", color = NA) +
+  geom_tile(aes(x = lon, y = lat, fill = kWh)) +
+  scale_fill_viridis_c(
+    trans = "log1p"
+  )  +
+  facet_wrap(~ origin_type_fr) + 
+  geom_sf(data = eez_overlap_sf, color = "white", fill = NA, size = 0.2) +
+  geom_sf(data = ne_countries(returnclass = "sf", scale = "medium")) +
+  coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]),
+           ylim = c(bbox["ymin"], bbox["ymax"])) +
+  labs(x = "", y = "") +
+  theme_minimal(base_family = "sans") +
+  theme(legend.position = "None")
+
+output_file <- "figures/map_effort_by_origin_type_facetted.png"
+if (!file.exists(output_file)) {
+  ggsave(output_file, plot = map, width = 12, height = 8, dpi = 300)
+}
+```
+
+![](figures/map_effort_by_origin_type_facetted.png)
+
+### Régionalisation
+
+```{r}
+#| include: false
+
+bool <- !file.exists("output/data/dist_largescale.rds") | !file.exists("output/data/dist_trawlers.rds")
+
+if (bool) {
+  # Flotilla regionalization at large scale
+  # Excluding the continental shelf
+  x1 <- compute_dist(effort_ds$clean_effort |> 
+                       filter(
+                         bathymetry_m < -1000,
+                         distance_to_shore_km > 100,     # To avoid using shallow water cells in open ocean
+                     ),
+                     as_species = "flotilla",
+                     as_abundance = "kWh",
+                     bin_to_0.5 = TRUE,
+                     spatial_constraint = TRUE,
+                     diss = "hellinger")
+  saveRDS(x1, file = "output/data/dist_largescale.rds")
+  
+  # Flag regionalization at small scale in the EEZs for trawlers
+  x2 <- compute_dist(effort_ds$clean_effort |> filter(region_type_fr == "ZEE", gear_type_fr == "Chaluts"),
+                     as_species = "flag",
+                     as_abundance = "kWh",
+                     bin_to_0.5 = FALSE,
+                     spatial_constraint = TRUE,
+                     diss = "hellinger")
+  saveRDS(x2, file = "output/data/dist_trawlers.rds")
+  
+}
+```
+
+```{r}
+#| include: false
+
+x <- readRDS(file = "output/data/dist_trawlers.rds")
+
+results_trawlers <- assign_clusters(
+  D0 = x$D0,
+  D1 = x$D1,
+  cell_coords = x$cell_coords,
+  k = 9,
+  alpha = 0.5
+)
+
+centers <- results_trawlers$clusters |>    # Reorder clusters for consistency between runs and interpretability
+  summarize(
+    lat = mean(lat),
+    .by = cluster
+  ) |> 
+  arrange(desc(lat)) |> 
+  mutate(
+    ordered_cluster = row_number()
+  ) |> 
+  dplyr::select(cluster, ordered_cluster)
+
+results_trawlers$clusters <- results_trawlers$clusters |> 
+  left_join(centers, 
+            by = "cluster") |> 
+  dplyr::select(-cluster) |> 
+  rename(cluster = ordered_cluster) |> 
+  relocate(cluster)
+  
+summary_trawlers <- summarize_clusters(
+  effort_ds$clean_effort,
+  clusters = results_trawlers$clusters,
+  as_species = "flag",
+  as_abundance = "kWh",
+  spat_res = 0.1
+)
+
+# Top-5 compositon per cluster
+
+summary_top5 <- summary_trawlers |> 
+  dplyr::select(id, top5) |> 
+  separate_rows(top5, sep = ";") |> 
+  mutate(
+    flag = str_extract(top5, "^[^(]+") |> str_trim(),
+    kWh_percent = str_extract(top5, "(?<=\\()[^%]+") |> as.numeric()
+  ) |> 
+  dplyr::select(-top5) |> 
+  mutate(flag = reorder_within(flag, kWh_percent, id, .desc = TRUE))
+
+# Plot map with cluster composition
+
+p_compo <- ggplot(summary_top5, 
+       aes(x = flag, 
+           y = kWh_percent, 
+           fill = as.factor(id))) +
+  geom_col(color = "black") +
+  coord_flip() +
+  scale_fill_grafify(palette = "kelly") +
+  facet_wrap(~ id, scales = "free_y", ncol = 2) +
+  labs(
+    x = "", 
+    y = "kW.h (%)",
+    title = ""
+    ) +
+  scale_x_reordered() +
+  scale_y_continuous(breaks = c(0, 50, 100)) +
+  theme_minimal() +
+  theme(legend.position = "None")
+
+bbox <- st_bbox(fao34_sf)
+bbox["xmin"] <- -20
+
+p_map <- ggplot() +
+  geom_tile(data = results_trawlers$clusters, aes(x = lon, y = lat, fill = as.factor(cluster))) +
+  geom_sf(data = eez_overlap_sf, color = "black", fill = NA) +
+  geom_sf(data = fao34_sf, color = "black", fill = NA) +
+  geom_sf(data = ne_countries(returnclass = "sf", scale = "medium"), fill = "lightgrey") +
+  scale_fill_grafify(palette = "kelly") +
+  theme_minimal() +
+  coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]),
+           ylim = c(bbox["ymin"], bbox["ymax"])) +
+  labs(x = "Longitude", y = "Latitude") +
+  gfw_map_theme + 
+  theme(legend.position = "None")
+
+layout_design <- "
+AAAABB
+AAAABB
+AAAABB
+"
+p <- free(p_map) / p_compo +
+  plot_layout(design = layout_design, labels) +
+  plot_annotation(tag_levels = 'a')
+
+ggsave("figures/map_and_compo_clustering_trawlers.png",
+       p,
+       height = 20,
+       width = 35,
+       units = "cm")
+```
+
+![](figures/map_and_compo_clustering_trawlers.png){fig-align="center" width="16cm"}
+
+### Captures
+
+```{r}
+#| include: false
+
+catch <- readRDS("output/clean_data/catch.rds") |> 
+  mutate(overexploitation_flag = factor(overexploitation_flag,
+                                        levels = c("Match impossible",
+                                                   "Evaluations lacunaires",
+                                                   "Surexploitation probable",
+                                                   "Non surexploitation probable")))
+```
+
+```{r}
+#| include: false
+
+# Overexploitation footprint
+
+catch_total <- sum(catch$tonnes, na.rm = TRUE)
+
+top_x_percent <- catch |> 
+  mutate(
+    fishing_entity = ifelse(fishing_entity == "Channel Isl. (UK)", "United Kingdom", fishing_entity),
+    fishing_entity = countrycode(fishing_entity, origin = "country.name", destination = "country.name.fr")
+  ) |> 
+  summarize(
+    tonnes_per_y = sum(tonnes, na.rm = TRUE) / 5,
+    .by = fishing_entity
+  ) |> 
+  arrange(desc(tonnes_per_y)) |> 
+  mutate(
+    total_percent_cumulated = 100 * cumsum(tonnes_per_y) / sum(tonnes_per_y)
+  ) |> 
+  filter(total_percent_cumulated < 90)
+
+# Then filter the main data to keep only these entities
+overexploitation_summary <- catch |> 
+  summarize(
+    tonnes_per_y = sum(tonnes, na.rm = TRUE) / 5,
+    .by = c(fishing_entity, overexploitation_flag)
+  ) |> 
+  group_by(fishing_entity) |> 
+  mutate(total = sum(tonnes_per_y)) |> 
+  ungroup() |> 
+  mutate(
+    fishing_entity = ifelse(fishing_entity == "Channel Isl. (UK)", "United Kingdom", fishing_entity),
+    fishing_entity = countrycode(fishing_entity, origin = "country.name", destination = "country.name.fr")
+  )
+
+p1 <- overexploitation_summary |> 
+  filter(fishing_entity %in% top_x_percent$fishing_entity) |>
+  ggplot(aes(x = fct_reorder(fishing_entity, total), y = tonnes_per_y, fill = overexploitation_flag)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  scale_fill_manual(
+    values = c("Surexploitation probable" = "#e69f00",
+               "Non surexploitation probable" = "#56b4e9",
+               "Evaluations lacunaires" = "#bbbbbb",
+               "Match impossible" = "#848482")
+  ) +
+  labs(y = "Captures reconstruites (t/an)",
+       x = "",
+       fill = "Niveau de surexploitation") +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::scientific) +
+  theme(legend.position = "left")
+
+data <- overexploitation_summary |> 
+  mutate(
+    fishing_entity = ifelse(fishing_entity == "Channel Isl. (UK)", "United Kingdom", fishing_entity),
+    flag_iso3c = countrycode(fishing_entity, origin = "country.name.fr", destination = "iso3c"),
+    type = ifelse(flag_iso3c %in% west_africa_flags, "Pav. ouest-africains", "Autres"),
+    type = factor(type, levels = c("Pav. ouest-africains", "Autres"))
+  ) |> 
+  group_by(overexploitation_flag, type) |> 
+  summarise(tonnes = sum(tonnes_per_y, na.rm = TRUE))
+
+p2 <- data |> 
+  ggplot(aes(x = type, y = tonnes, fill = overexploitation_flag)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  scale_fill_manual(
+    values = c("Surexploitation probable" = "#e69f00",
+               "Non surexploitation probable" = "#56b4e9",
+               "Evaluations lacunaires" = "#bbbbbb",
+               "Match impossible" = "#848482")
+  ) +
+  labs(x = "", y = "",
+       fill = "Niveau de surexploitation") +
+  theme_minimal()
+
+
+plots <- list(
+  A = p1,
+  B = p2
+)
+
+layout_design = "
+AAB
+"
+
+final_plot <- wrap_plots(
+  plots, 
+  design = layout_design,
+  guides = "collect"
+) +
+  plot_annotation(tag_levels = 'a')
+
+ggsave("figures/overexploitation_summary.png",
+       final_plot,
+       height = 12,
+       width = 25,
+       unit = "cm")
+```
+
+![](figures/overexploitation_summary.png){width="16cm"}
+
+## Propriété
+
+```{r}
+#| echo: false
+
+data_owners <- effort_ds$clean_effort |> 
+  summarize(
+    fishing_hours = sum(apparent_fishing_hours, na.rm = TRUE),
+    n_imos = n_distinct(assigned_imo, na.rm = TRUE),
+    n_vessel_ids = n_distinct(vessel_id, na.rm = TRUE),
+    n_mmsis = n_distinct(mmsi, na.rm = TRUE),
+    gt = sum(tonnage_gt_gfw, na.rm = TRUE),
+    .by = c(total_confidence, ish_confidence, guo_confidence)
+  ) |> 
+  arrange(desc(total_confidence), ish_confidence, desc(guo_confidence)) |> 
+  mutate(
+    fishing_hours_percent = 100 * fishing_hours / sum(fishing_hours),
+    n_imos_percent = 100 * n_imos / sum(n_imos),
+    n_vessel_ids_percent = 100 * n_vessel_ids / sum(n_vessel_ids),
+    n_mmsis_percent = 100 * n_mmsis / sum(n_mmsis),
+    gt_percent = 100 * gt / sum(gt),
+  ) |> 
+  relocate(
+    total_confidence, ish_confidence, guo_confidence,
+    n_imos, n_imos_percent,
+    n_vessel_ids, n_vessel_ids_percent,
+    n_mmsis, n_mmsis_percent,
+    gt, gt_percent,
+    fishing_hours, fishing_hours_percent
+  )
+
+data_owners$total_confidence <- c("Haut",
+                                  "Haut",
+                                  "Moyen",
+                                  "Bas",
+                                  "Propriétaire non identifié",
+                                  "Numéro IMO non identifié")
+data_owners <- data_owners |> 
+  mutate(
+    ish_confidence = case_when(
+      grepl("1", ish_confidence) ~ "1: Match direct de l'IMO dans ORBIS",
+      grepl("2", ish_confidence) ~ "2: Match du propriétaire GISIS dans ORBIS",
+      grepl("3", ish_confidence) ~ "3: Propriétaire GISIS utilisé comme ISH",
+      grepl("4", ish_confidence) ~ "4: Pas d'ISH connu",
+      TRUE ~ NA
+    ),
+    guo_confidence = case_when(
+      grepl("1", guo_confidence) ~ "1: GUO fourni par ORBIS",
+      grepl("2", guo_confidence) ~ "2: ISH utilisé comme GUO",
+      grepl("3", guo_confidence) ~ "3: GUO inconnu",
+      TRUE ~ NA
+    ),
+    across(contains("percent"), function(x){round(x, 1)}),
+    fishing_hours = formatC(fishing_hours, format = "e", digits = 2),
+    gt = formatC(gt, format = "e", digits = 2)
+  )
+
+colnames = c(
+  "Indice de confiance",
+  "Attribution de l'ISH",
+  "Attribution du GUO",
+  "IMO", "(%)",
+  #"Id. GFW", "(%)",
+  "MMSI", "(%)",
+  "GT (%)",
+  "Heures (%)"
+)
+
+tbl <- data_owners |>
+  dplyr::select(-contains("vessel_id"), -gt, -fishing_hours) |> 
+  kable(
+    format = "latex",
+    booktabs = TRUE,
+    align = "lllrlrlrr",
+    escape = TRUE,
+    linesep = "",
+    col.names = colnames
+  ) |>
+  kable_styling(
+    latex_options = c("Hold_position", "striped", "scale_down")
+  )
+
+saveRDS(tbl, "tables/ownership_confidence_summary_tex.rds")
+```
+
+```{r}
+#| include: false
+
+summary_ownership <- effort_ds$clean_effort |> 
+  group_by(flag_iso3c, guo_country_iso3, assigned_imo) |>  # grouping at vessel level
+  summarize(
+    kWh = sum(kWh, na.rm = TRUE),
+    GT = sum(tonnage_gt_gfw, na.rm = TRUE),
+    .groups = "drop"
+  ) |> 
+  group_by(flag_iso3c, guo_country_iso3) |>  # now re-aggregate at flag-GUO level
+  summarize(
+    kWh = sum(kWh),
+    GT = sum(GT),
+    n_vessels = n_distinct(assigned_imo),
+    .groups = "drop"
+  ) |> 
+  mutate(kWh_percent = 100 * kWh / sum(kWh)) |> 
+  mutate(
+    flag_fr = countrycode(flag_iso3c, origin = "iso3c", destination = "country.name.fr"),
+    guo_country_fr = countrycode(guo_country_iso3, origin = "iso3c", destination = "country.name.fr"),
+    is_european_guo = guo_country_iso3 %in% pull(read.xlsx("https://www.dropbox.com/s/dp8l4nz8fmr5v10/eu27_iso_codes.xlsx?dl=1"))
+  )
+```
+
+```{r}
+#| echo: false
+
+library(dplyr)
+library(ggplot2)
+library(ggalluvial)
+
+# Compute total vessels by flag and filter flag with enough effort
+total_by_flag <- summary_ownership |> 
+  summarize(total_vessels = sum(n_vessels),
+            kWh_percent = sum(kWh_percent),
+            .by = flag_fr)
+
+flag_w_enough_effort <- total_by_flag |> 
+  filter(kWh_percent >= 1) |> 
+  pull(flag_fr)
+
+# 1. Filter to only mismatches
+plot_b_data <- summary_ownership |> 
+  filter(
+    flag_fr != guo_country_fr,
+    flag_fr %in% flag_w_enough_effort
+    )
+
+# 2. Expand rows based on n_vessels (to get one row per vessel)
+plot_b_expanded <- plot_b_data |> 
+  uncount(weights = n_vessels)
+
+# 3. Compute percentage mismatch per flag country
+  
+mismatched_by_flag <- plot_b_data |> 
+  group_by(flag_fr) |> 
+  summarise(mismatched_vessels = sum(n_vessels))
+
+flag_stats <- left_join(mismatched_by_flag, total_by_flag, by = "flag_fr") |> 
+  mutate(percent_mismatch = round(100 * mismatched_vessels / total_vessels)) |> 
+  arrange(desc(mismatched_vessels)) |> 
+  mutate(flag_label = paste0(flag_fr, " (", percent_mismatch, "%)"))
+
+# 4. Join back the flag labels
+plot_b_expanded <- left_join(plot_b_expanded, flag_stats |>  dplyr::select(flag_fr, flag_label), by = "flag_fr")
+
+# 5. Ensure GUO countries are sorted alphabetically
+guo_levels_ordered <- summary_ownership %>%
+  distinct(guo_country_fr, is_european_guo) %>%
+  arrange(desc(is_european_guo), guo_country_fr) %>%
+  pull(guo_country_fr)
+
+plot_b_expanded$guo_country_fr <- factor(plot_b_expanded$guo_country_fr,
+                                           levels = guo_levels_ordered)
+
+plot_b_expanded$flag_label <- factor(plot_b_expanded$flag_label,
+                                     levels = flag_stats$flag_label)
+
+
+p <- ggplot(plot_b_expanded,
+       aes(axis1 = flag_label, axis2 = guo_country_fr)) +
+  geom_alluvium(aes(fill = flag_label), width = 1/5) +
+  geom_stratum(width = 1/5, fill = "white", color = "white", alpha = 0.2) +
+  scale_x_discrete(limits = c("Pavillon", "Nationalité du GUO"), expand = c(.1, .1)) +
+  scale_fill_grafify(palette = "kelly") +
+  labs(y = "Navires", x = "") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+# Get stratum layer data
+strata_data <- ggplot_build(p)$data[[2]]
+
+# Identify GUO countries with ≥ 3 vessels
+guo_with_labels <- plot_b_expanded %>%
+  count(guo_country_fr, name = "n_vessels") %>%
+  filter(n_vessels >= 3) %>%
+  pull(guo_country_fr)
+
+# Label only flag countries and GUO countries with ≥ 5 vessels
+strata_labeled <- strata_data %>%
+  mutate(label = ifelse(
+    x == 1 | (x == 2 & stratum %in% guo_with_labels),
+    as.character(stratum),
+    ""
+  ))
+
+# Add labels using precomputed filtered data
+p <- p + geom_text(data = strata_labeled,
+                   mapping = aes(x = x, y = y, label = label),
+                   inherit.aes = FALSE,
+                   size = 3)
+
+ggsave("figures/alluvial_plot_flag_guo.png",
+       p,
+       height = 20,
+       width = 30,
+       unit = "cm")
+```
+
+![](figures/alluvial_plot_flag_guo.png)
+
+```{r}
+#| echo: false
+
+effort_by_flag <- effort_ds$clean_effort |> 
+  summarize(
+    kWh_per_y = sum(kWh, na.rm = TRUE) / 5,
+    .by = flag_iso3c
+  ) |> 
+  mutate(type = "Pavillon") |> 
+  rename(iso3c = flag_iso3c) |> 
+  mutate(
+    name = ifelse(
+      is.na(iso3c), NA,
+      countrycode(iso3c, origin = "iso3c", destination = "country.name.fr")
+    ),
+    rank_guo = NA_integer_
+  )
+
+effort_by_guo_country <- effort_ds$clean_effort |> 
+  summarize(
+    kWh_per_y = sum(kWh, na.rm = TRUE) / 5,
+    .by = guo_country_iso3
+  ) |> 
+  mutate(type = "Nationalité du GUO") |> 
+  rename(iso3c = guo_country_iso3) |> 
+  arrange(desc(kWh_per_y)) |> 
+  mutate(
+    name = ifelse(
+      is.na(iso3c), NA,
+      countrycode(iso3c, origin = "iso3c", destination = "country.name.fr")
+    ),
+    rank_guo = row_number() - 1 # NA is the first in the ranking
+  ) 
+
+combined_effort <- bind_rows(
+  effort_by_flag,
+  effort_by_guo_country
+) |> 
+  mutate(
+    kWh_per_y = ifelse(type == "Pavillon", -kWh_per_y, kWh_per_y),
+    belonging = case_when(
+      is.na(iso3c) ~ NA,
+      iso3c %in% pull(read.xlsx("https://www.dropbox.com/s/dp8l4nz8fmr5v10/eu27_iso_codes.xlsx?dl=1")) ~ "UE", 
+      iso3c %in% west_africa_flags ~ "Afr. de l'Ouest",
+      TRUE ~ "Autre"
+    ),
+    belonging = factor(belonging, levels = c("Afr. de l'Ouest", "UE", "Autre"))
+  )
+
+# Use your updated ordering (ascending order)
+# Build full order: Pavillon first, then missing from GUO
+country_order <- combined_effort |>
+  filter(type == "Pavillon") |>
+  dplyr::select(name, type, kWh_per_y) |>
+  mutate(kWh_per_y = -kWh_per_y) |> 
+  distinct() |>
+  bind_rows(
+    combined_effort |>
+      filter(type == "Nationalité du GUO", !(name %in% effort_by_flag$name)) |>
+      dplyr::select(name, type, kWh_per_y) |>
+      distinct()
+  ) |>
+  arrange(type, kWh_per_y) |>
+  pull(name)
+
+combined_effort$name <- factor(combined_effort$name, levels = country_order)
+
+# Keep only countries with a sufficient effort either as flag or guo
+countries_list <- combined_effort |> 
+  filter(type == "Pavillon") |> 
+  dplyr::select(iso3c, kWh_per_y) |> 
+  full_join(
+    combined_effort |> 
+      filter(type == "Nationalité du GUO") |> 
+      dplyr::select(iso3c, kWh_per_y),
+    by = "iso3c"
+  ) |> 
+  mutate(
+    kWh_per_y.x = ifelse(is.na(kWh_per_y.x), 0, -kWh_per_y.x),
+    kWh_per_y.y = ifelse(is.na(kWh_per_y.y), 0, kWh_per_y.y)
+  ) |> 
+  filter(pmax(kWh_per_y.x, kWh_per_y.x) >= 5e6) |> 
+  pull(iso3c)
+
+combined_effort <- combined_effort |> 
+  filter(iso3c %in% countries_list)
+
+# Plot
+p <- ggplot(combined_effort, aes(x = kWh_per_y, y = name, fill = type, color = belonging)) +
+  geom_col() +
+  # Rank labels for GUO nationality
+  geom_text(
+    data = combined_effort |> 
+      filter(type == "Nationalité du GUO", rank_guo <= 10, rank_guo > 0),
+    aes(label = paste0("#", rank_guo)),
+    hjust = -0.1,
+    color = "black",
+    size = 3
+  ) +
+  scale_x_continuous(labels = abs, limits = c(-3.5e8, 3.5e8)) +
+  labs(x = expression("kW.heures.an"^{-1}), 
+                      y = "", fill = NULL, color = NULL) +
+  theme_minimal() +
+  scale_fill_manual(values = c("Pavillon" = "grey", "Nationalité du GUO" = "black")) +
+  scale_color_grafify(na.value = "grey50", reverse = TRUE) +
+  guides(color = guide_legend(override.aes = list(fill = NA)))
+
+ggsave("figures/effort_flag_vs_guo.png",
+       p,
+       height = 10,
+       width = 16,
+       unit = "cm")
+```
+
+![](figures/effort_flag_vs_guo.png){fig-align="center" width="16cm"}
+
+## Abrasion
+
+```{r}
+#| echo: false
+
+bottom_ds <- readRDS("output/clean_data/bottom_trawling.rds")
+```
+
+Surface balayée par GUO
+
+```{r}
+#| echo: false
+
+summary_trawling <- bottom_ds$clean_effort |>
+  summarize(
+    swept_area_km2_per_y = sum(swept_area_km2, na.rm = TRUE) / 4,
+    .by = c(guo_country_iso3)
+  ) |> 
+  arrange(desc(swept_area_km2_per_y)) |> 
+  mutate(
+    sa_percent_cumulated = 100 * cumsum(swept_area_km2_per_y) / sum(swept_area_km2_per_y),
+    guo_country_fr = countrycode(guo_country_iso3, origin = "iso3c", destination = "country.name.fr"),
+    belonging = case_when(
+      is.na(guo_country_iso3) ~ "NA",
+      guo_country_iso3 %in% pull(read.xlsx("https://www.dropbox.com/s/dp8l4nz8fmr5v10/eu27_iso_codes.xlsx?dl=1")) ~ "UE", 
+      guo_country_iso3 %in% west_africa_flags ~ "Afr. de l'Ouest",
+      TRUE ~ "Autre"
+    ),
+    belonging = factor(belonging, levels = c("Afr. de l'Ouest", "UE", "Autre", "NA"))
+  )
+
+p_trawling <- summary_trawling |> 
+  filter(sa_percent_cumulated <= 99) |> 
+  ggplot(aes(x = fct_reorder(guo_country_iso3, swept_area_km2_per_y), y = swept_area_km2_per_y, fill = belonging)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(x = "Surface balayée (km2.an-1)",
+       y = "") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  scale_fill_manual(values = c("green3", "dodgerblue2", "red", "grey"))
+```
+
+Proportion des cellule chalutées au moins une fois par an (Amoroso)
+
+```{r}
+#|echo: false
+
+footprint <- bottom_ds$clean_effort |> 
+  mutate(
+    SA_min_km2 = gear_width_minimal_m * 1e-3 * distance_trawled_km,
+    SA_OT_MIX_km2 = gear_width_m * 1e-3 * distance_trawled_km
+  ) |> 
+  summarize(
+    SA_min_km2 = sum(SA_min_km2),
+    SA_OT_MIX_km2 = sum(SA_OT_MIX_km2),
+    .by = c(lat, lon, year, cell_area_km2, eez_iso3c)
+  ) |> 
+  mutate(
+    SAR_min = SA_min_km2 / cell_area_km2,
+    SAR_OT_MIX = SA_OT_MIX_km2 / cell_area_km2,
+    cell_annual_footprint_min =  1 - exp(-SAR_min),
+    cell_annual_footprint_OT_MIX =  1 - exp(-SAR_OT_MIX)
+  ) |> 
+  summarize(
+    SA_min_km2 = mean(SA_min_km2, na.rm = TRUE),
+    SA_OT_MIX_km2 = mean(SA_OT_MIX_km2, na.rm = TRUE),
+    SAR_min = mean(SAR_min, na.rm = TRUE),
+    SAR_OT_MIX = mean(SAR_OT_MIX),
+    cell_annual_footprint_min = mean(cell_annual_footprint_min, na.rm = TRUE),
+    cell_annual_footprint_OT_MIX = mean(cell_annual_footprint_OT_MIX, na.rm = TRUE),
+    .by = c(lat, lon)
+  )
+
+footprint <- bottom_ds$shelf_grid |> 
+  left_join(footprint,
+            by = c("lat", "lon"))
+
+footprint <- footprint |> 
+  mutate(
+    across(contains("min"), ~ replace_na(.x, 0)),
+    across(contains("OT_MIX"), ~ replace_na(.x, 0)),
+    
+    footprint_min_bin = cut(
+      cell_annual_footprint_min,
+      breaks = seq(0, 1, by = 0.1),
+      include.lowest = TRUE,
+      right = FALSE,
+      labels = paste0("[", seq(0, 0.9, by = 0.1), "-", seq(0.1, 1.0, by = 0.1), ")")
+    ),
+    footprint_OT_MIX_bin = cut(
+      cell_annual_footprint_OT_MIX,
+      breaks = seq(0, 1, by = 0.1),
+      include.lowest = TRUE,
+      right = FALSE,
+      labels = paste0("[", seq(0, 0.9, by = 0.1), "-", seq(0.1, 1.0, by = 0.1), ")")
+    )
+  )
+```
+
+```{r}
+#|echo: false
+
+map_footprint_min <- footprint |> 
+  ggplot() +
+  geom_tile(aes(x = lon, y = lat, fill = footprint_min_bin)) +
+  geom_sf(data = eez_overlap_sf, color = "black", fill = NA) +
+  geom_sf(data = fao34_sf, color = "black", fill = NA) +
+  geom_sf(data = ne_countries(returnclass = "sf", scale = "medium"), fill = "lightgrey") +
+  scale_fill_viridis_d(
+    option = "inferno",  # Emphasizes high values, good contrast
+    direction = -1,
+    na.value = NA,
+    name = "Empreinte\nannuelle"
+  ) +
+  coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]),
+           ylim = c(bbox["ymin"], bbox["ymax"])) +
+  labs(x = "", y = "") +
+  theme_minimal()
+
+map_footprint_OT_MIX <- footprint |> 
+  ggplot() +
+  geom_tile(aes(x = lon, y = lat, fill = footprint_OT_MIX_bin)) +
+  geom_sf(data = eez_overlap_sf, color = "black", fill = NA) +
+  geom_sf(data = fao34_sf, color = "black", fill = NA) +
+  geom_sf(data = ne_countries(returnclass = "sf", scale = "medium"), fill = "lightgrey") +
+  scale_fill_viridis_d(
+    option = "inferno",  # Emphasizes high values, good contrast
+    direction = -1,
+    na.value = NA,
+    name = "Empreinte\nannuelle"
+  ) +
+  coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]),
+           ylim = c(bbox["ymin"], bbox["ymax"])) +
+  labs(x = "", y = "") +
+  theme_minimal()
+
+p_footprint <- map_footprint_min + map_footprint_OT_MIX +
+  plot_layout(guides = "collect") +
+  plot_annotation(tag_levels = 'a')
+
+output_file <- "figures/map_bottom_footprint.png"
+if (!file.exists(output_file)) {
+  ggsave(output_file,
+         plot = p_footprint,
+         width = 30, 
+         height = 17, 
+         units = "cm",
+         dpi = 300)
+}
+```
+
+![](figures/map_bottom_footprint.png){width="16cm"}
+
+![]()
+
+## Pêche près des côtes
+
+```{r}
+#| echo: false
+
+inshore_ds <- readRDS("output/clean_data/inshore_fishing.rds")
+```
+
+```{r}
+#| echo: false
+
+
+inshore <- inshore_ds$clean_effort |> 
+  filter(gear_type_fr == "Chaluts") |> 
+  mutate(
+    inshore_fishing_flag = case_when(
+      inn_fishing ~ "INN",
+      would_be_inn ~ "Problématique",
+      in_12nm ~ "Autre",
+      TRUE ~ "> 12 nm"
+    ),
+    inshore_fishing_flag = factor(inshore_fishing_flag, levels = c("> 12 nm", "Autre", "Problématique", "INN"))
+  )
+
+summarize_inshore <- function(inshore) {
+  
+  n_years <- max(inshore$year) - min(inshore$year) + 1
+  grouping <- group_vars(inshore)
+  
+  inshore |> 
+    group_by(across(all_of(grouping)), inshore_fishing_flag) |>
+    summarize(
+      kWh_per_y = sum(kWh, na.rm = TRUE) / n_years,
+      .groups = "drop_last"
+    ) |> 
+    mutate(total_kWh_per_y = sum(kWh_per_y),
+           kWh_pct = ifelse(total_kWh_per_y == 0, 0, 100 * kWh_per_y / total_kWh_per_y)) |> 
+    ungroup()
+  
+}
+
+summary_inshore_by_flag <- inshore |> group_by(flag_iso3c) |> summarize_inshore()
+summary_inshore_by_eez <- inshore |> group_by(eez_iso3c) |> summarize_inshore()
+
+in12nm_by_eez <- summary_inshore_by_eez |> 
+  filter(inshore_fishing_flag != "> 12 nm") |> 
+  summarize(
+    kWh_per_y = sum(kWh_per_y),
+    total_kWh_per_y = first(total_kWh_per_y),
+    kWh_pct = sum(kWh_pct),
+    .by = eez_iso3c
+  )
+```
+
+## Impact chalut résumé
+
+```{r}
+#| echo: false
+
+impact_guo_inshore <- inshore_ds$clean_effort |> 
+  filter(gear_type_fr == "Chaluts") |> 
+  summarize(
+    kWh_per_y = sum(kWh, na.rm = TRUE) / 5,
+    kWh_per_y_in_12nm = sum(kWh * in_12nm, na.rm = TRUE) / 5,
+    kWh_per_y_inn = sum(kWh * inn_fishing, na.rm = TRUE) / 5,
+    kWh_per_y_would_be_inn = sum(kWh * would_be_inn, na.rm = TRUE) / 5,
+    .by = guo_country_iso3
+  )
+
+impact_guo <- impact_guo_inshore |> 
+  full_join(summary_trawling |> 
+              dplyr::select(guo_country_iso3, swept_area_km2_per_y),
+            by = "guo_country_iso3") |> 
+  mutate(
+    belonging = case_when(
+      is.na(guo_country_iso3) ~ NA,
+      guo_country_iso3 %in% pull(read.xlsx("https://www.dropbox.com/s/dp8l4nz8fmr5v10/eu27_iso_codes.xlsx?dl=1")) ~ "UE", 
+      guo_country_iso3 %in% west_africa_flags ~ "Afr. de l'Ouest",
+      TRUE ~ "Autre"
+    ),
+    belonging = factor(belonging, levels = c("Afr. de l'Ouest", "UE", "Autre")),
+    across(contains("per_y"), function(x) {ifelse(is.na(x), 0, x)}),
+    kWh_per_y_in_12nm_pct = 100 * kWh_per_y_in_12nm / kWh_per_y
+  )
+
+impact_guo_UE <- impact_guo |> 
+  filter(belonging == "UE") |> 
+  mutate(guo_country_iso3 = "UE (total)") |> 
+  summarize(
+    kWh_per_y = sum(kWh_per_y, na.rm = TRUE),
+    kWh_per_y_in_12nm = sum(kWh_per_y_in_12nm, na.rm = TRUE),
+    kWh_per_y_inn = sum(kWh_per_y_inn, na.rm = TRUE),
+    kWh_per_y_would_be_inn = sum(kWh_per_y_would_be_inn, na.rm = TRUE),
+    swept_area_km2_per_y = sum(swept_area_km2_per_y , na.rm = TRUE),
+    belonging = first(belonging),
+    kWh_per_y_in_12nm_pct = 100 * kWh_per_y_in_12nm / kWh_per_y,
+    .by = guo_country_iso3
+  )
+
+summary_big <- impact_guo |> 
+  filter(is.na(guo_country_iso3) | guo_country_iso3 == "CHN") |> 
+  mutate(guo_country_iso3 = "NA+CHN",
+         belonging = NA) |> 
+  summarize(
+    kWh_per_y = sum(kWh_per_y, na.rm = TRUE),
+    kWh_per_y_in_12nm = sum(kWh_per_y_in_12nm, na.rm = TRUE),
+    kWh_per_y_inn = sum(kWh_per_y_inn, na.rm = TRUE),
+    kWh_per_y_would_be_inn = sum(kWh_per_y_would_be_inn, na.rm = TRUE),
+    swept_area_km2_per_y = sum(swept_area_km2_per_y , na.rm = TRUE),
+    belonging = first(belonging),
+    kWh_per_y_in_12nm_pct = 100 * kWh_per_y_in_12nm / kWh_per_y,
+    .by = guo_country_iso3
+  ) |> 
+  rbind(impact_guo_UE)
+
+p_impact <- impact_guo |> 
+  rbind(impact_guo_UE) |> 
+  ggplot(aes(x = kWh_per_y_in_12nm_pct, 
+             y = swept_area_km2_per_y, 
+             size = kWh_per_y, 
+             color = belonging)) +
+  geom_point() +
+  geom_text_repel(aes(label = guo_country_iso3), size = 3, max.overlaps = 20) +
+  scale_x_continuous(trans = "log1p", breaks = seq(0, 80, 10)) +
+  scale_y_continuous(trans = "log1p") +
+  scale_color_grafify(na.value = "grey50", reverse = TRUE) +
+  theme_minimal() +
+  labs(
+    x = "Part de l'effort à moins de 12 nm (% kW.h)",
+    y = expression(paste("Surface balayée (km"^2, ".an"^{-1}, ")")),
+    color = "Appartenance",
+    size = expression("kW.h.an"^{-1})
+  )
+
+ggsave("figures/guo_impact_bubble_plot.png",
+       p_impact,
+       height = 11,
+       width = 18,
+       units = "cm")
+```
+
+![](figures/guo_impact_bubble_plot.png){width="16cm"}
+
+```{r}
+#| include: false
+
+effort_ds$clean_effort |> 
+  filter(guo_country_iso3 == "GHA", gear_type == "Trawls") |> 
+  distinct(mmsi, vessel_name, length_m_gfw, ish_name, guo_name)
+
+effort_ds$clean_effort |> 
+  filter(guo_country_iso3 == "NGA", gear_type == "Trawls") |> 
+  distinct(mmsi, vessel_name, length_m_gfw, ish_name, guo_name)
+```
+
+# Annexes
+
+```{r}
+#| include: false
+
+head(eez_overlap_sf, 3)
+
+bbox <- st_bbox(fao34_sf)
+
+west_africa_flags <- c("MAR", "ESH", "MRT", "SEN", "GMB", "GNB",
+                       "GIN", "SLE", "LBR", "CPV", "CIV", "GHA",
+                       "TGO", "BEN", "NGA", "CMR", "STP", "GNQ",
+                       "GAB", "COD", "COG", "AGO")
+
+eez_overlap_sf <- eez_overlap_sf |> 
+  mutate(is_wafrican = ISO_TER1 %in% west_africa_flags)
+
+eez_labels <- eez_overlap_sf |> 
+  filter(POL_TYPE != "Joint regime") |>
+  st_centroid(of_largest_polygon = TRUE) |> 
+  mutate(label = TERRITORY1)
+
+repel_countries <- c("Spain",
+                     "Canary Islands",
+                     "Senegal",
+                     "Gambia",
+                     "Ghana",
+                     "Togo",
+                     "Benin", 
+                     "Republic of the Congo", 
+                     "Democratic Republic of the Congo", 
+                     "Angola")
+
+eez_labels_1 <- eez_labels |>  
+  filter(!TERRITORY1 %in% repel_countries)
+
+eez_labels_2 <- eez_labels |> 
+  filter(TERRITORY1 %in% repel_countries)
+eez_labels_2 <- eez_labels_2 |> 
+  cbind(st_coordinates(eez_labels_2))
+
+s <- 2
+
+p <- ggplot() +
+  geom_sf(data = fao34_sf, color = NA, fill = "grey", alpha = 0.1) +
+  geom_sf(data = eez_sf, color = "black", fill = NA) +
+  geom_sf(data = eez_overlap_sf, color = "black", aes(fill = is_wafrican)) +
+  geom_sf(data = fao34_sf, color = "black", fill = NA) +
+  geom_sf(data = ne_countries(returnclass = "sf", scale = "medium"), fill = "lightgrey") +
+  geom_sf_text(data = eez_labels_1, aes(label = label), size = s, check_overlap = TRUE) +
+  geom_text_repel(
+    data = eez_labels_2,
+    aes(x = X, y = Y, label = label),
+    size = s,
+    min.segment.length = 0,
+    box.padding = 0.3,
+    max.overlaps = Inf
+  ) +
+  scale_fill_manual(
+    values = c("TRUE" = "skyblue2",
+               "FALSE" = "white")
+  ) +
+  theme_minimal(base_size = 7) +
+  coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]),
+           ylim = c(bbox["ymin"], bbox["ymax"])) +
+  labs(x = "", y = "") +
+  theme(
+    legend.position = "None"
+    )
+
+ggsave("figures/general_map.png",
+       p,
+       height = 12,
+       width = 16,
+       dpi = 300,
+       units = "cm")
+```
+
+![](figures/general_map.png){fig-align="center" width="16cm"}
+
+![](figures/effort_summary.png){fig-align="center" width="18cm"}
+
+```{r}
+#| include: false
+
+bins <- c(seq(-8000, -2000, 1000), seq(-1000, 0, 200))
+bins <- seq(-8000, 0, 200)
+
+effort_ds$clean_effort <- effort_ds$clean_effort |> 
+  mutate(
+    bathy_binned = cut(bathymetry_m, bins),
+    bathy_binned = as.factor(as.numeric(sub("\\((.+),.*", "\\1", bathy_binned)))
+  )
+
+p <- effort_ds$clean_effort |> 
+  filter(!is.na(bathy_binned)) |> 
+  ggplot(aes(x = bathy_binned, y = kWh, fill = gear_type_fr)) +
+  geom_bar(position = "fill", stat = "identity") +
+  coord_flip() +
+  labs(x = "Profondeur (m)", y = "Part des kW.h", fill = "Type d'engin") +
+  scale_x_discrete(limits = factor(bins)) +
+  theme_minimal()
+
+ggsave("figures/gear_type_effort_by_bathy.png",
+       p,
+       height = 13,
+       width = 15,
+       units = "cm")
+```
+
+![](figures/gear_type_effort_by_bathy.png){fig-align="center" width="12cm"}
+
+```{r}
+#| include: false
+#| label: compute-dist-and-silhouettes
+
+x1 <- readRDS(file = "output/data/dist_largescale.rds")
+x2 <- readRDS(file = "output/data/dist_trawlers.rds")
+    
+output_file <- "figures/silhouettes.png"
+if (!file.exists(output_file)) {  
+  
+  y1 <- silhouette_grid_search_geo(x1$D0, x1$D1, k_max = 30)
+  y2 <- silhouette_grid_search_geo(x2$D0, x2$D1, k_max = 30)
+  
+  # Merge results for plot
+  
+  y1$results$regionalization <- "Prof.> 1000 m | 0.5° |  Tous  | Flottilles"
+  y2$results$regionalization <- "    ZEE    | 0.1° | Chalutiers | Pavillons "
+  
+  results <- rbind(
+    y1$results,
+    y2$results
+    )
+  
+  p <- ggplot(results, aes(x = k, y = sil_width, color = factor(alpha))) +
+    geom_line() + 
+    geom_point() +
+    labs(x = "Nombre de clusters (k)",
+         y = "Largeur moyenne",
+         color = expression(paste("Contrainte spatiale (", alpha, ")"))) +
+    facet_wrap(~ regionalization) +
+    theme_minimal(base_size = 9)
+  
+  ggsave(output_file,
+         p,
+         height = 8,
+         width = 16,
+         unit = "cm")
+}
+```
+
+![](figures/silhouettes.png){fig-align="center" width="16cm"}
+
+```{r}
+#| include: false
+
+summary_openocean <- effort_ds$clean_effort |> 
+  #filter(gear_type_fr %in% c("Lignes et hameçons", "Sennes coulissantes au thon")) |> 
+  filter(bathymetry_m <= -1000) |> 
+  summarize(
+    kWh_per_y = sum(kWh, na.rm = TRUE) / 5,
+    .by = c(flag_iso3c, gear_type_fr)
+  ) |> 
+  mutate(
+    kWh_percent = round(100 * kWh_per_y / sum(kWh_per_y, na.rm = TRUE), 1),
+    flotilla = paste(flag_iso3c, gear_type_fr, sep = " - ")
+  ) |> 
+  arrange(desc(kWh_per_y)) |> 
+  mutate(kWh_cumulated_percent = cumsum(kWh_percent)) 
+
+top95percent_openocean <- summary_openocean |> 
+  filter(kWh_cumulated_percent < 95.5)
+
+p <- top95percent_openocean |> 
+  ggplot(aes(x = fct_reorder(flotilla, kWh_per_y), y = kWh_per_y)) +
+  geom_col() +
+  coord_flip() +
+  labs(x = "", y = "kW.h.an-1") +
+  theme_minimal()
+
+ggsave("figures/effort_top95percent_openocean.png",
+       p,
+       height = 7,
+       width = 12, 
+       units = "cm")
+
+top6_openocean <- head(summary_openocean, 6)
+
+openocean_top6_effort <- effort_ds$clean_effort |> 
+  mutate(flotilla = paste(flag_iso3c, gear_type_fr, sep = " - ")) |> 
+  filter(flotilla %in% top6_openocean$flotilla) |> 
+  mutate(flotilla = factor(flotilla, levels = top6_openocean$flotilla))
+  
+
+bbox <- st_bbox(fao34_sf)
+p_map_kWh <- ggplot() +
+  geom_tile(data = openocean_top6_effort |>
+              summarize(kWh = sum(kWh, na.rm = TRUE),
+                        .by = c(lat, lon, flotilla)),
+            aes(x = lon, y = lat, fill = kWh)) +
+  geom_sf(data = eez_overlap_sf, color = "black", fill = NA) +
+  geom_sf(data = fao34_sf, color = "black", fill = NA) +
+  geom_sf(data = ne_countries(returnclass = "sf", scale = "medium"), fill = "lightgrey") +
+  scale_fill_viridis_c(
+    trans = "log10",
+    na.value = NA
+  ) +
+  coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]),
+           ylim = c(bbox["ymin"], bbox["ymax"])) +
+  labs(x = "", y = "", fill = "kW.h") +
+  facet_wrap(~ flotilla, ncol = 2) +
+  gfw_map_theme
+
+ggsave("figures/map_effort_top6_openocean_kWh.png",
+       plot = p_map_kWh,
+       width = 24, 
+       height = 30, 
+       units = "cm",
+       dpi = 300)
+```
+
+![](figures/effort_top95percent_openocean.png){fig-align="center" width="12cm"}
+
+![](figures/map_effort_top6_openocean_kWh.png){fig-align="center" width="16cm"}
+
+```{r}
+#| echo: false
+
+x <- readRDS(file = "output/data/dist_trawlers.rds")
+
+results_trawlers <- assign_clusters(
+  D0 = x$D0,
+  D1 = x$D1,
+  cell_coords = x$cell_coords,
+  k = 9,
+  alpha = 0.5
+)
+
+centers <- results_trawlers$clusters |>    # Reorder clusters for consistency between runs and interpretability
+  summarize(
+    lat = mean(lat),
+    .by = cluster
+  ) |> 
+  arrange(desc(lat)) |> 
+  mutate(
+    ordered_cluster = row_number()
+  ) |> 
+  dplyr::select(cluster, ordered_cluster)
+
+results_trawlers$clusters <- results_trawlers$clusters |> 
+  left_join(centers, 
+            by = "cluster") |> 
+  dplyr::select(-cluster) |> 
+  rename(cluster = ordered_cluster) |> 
+  relocate(cluster)
+  
+summary_trawlers <- summarize_clusters(
+  effort_ds$clean_effort,
+  clusters = results_trawlers$clusters,
+  as_species = "flag",
+  as_abundance = "kWh",
+  spat_res = 0.1
+) |> 
+  arrange(id) |> 
+  mutate(
+    `kW.h.an-1` = formatC(`kW.h.an-1`, format = "e", digits = 2),
+    `kW.h.m-2.an-1` = round(`kW.h.m-2.an-1`, 2),
+    shannon = round(shannon, 2),
+    pielou = round(pielou, 2)
+  ) |> 
+  rename(
+    S = richness,
+    `H'` = shannon,
+    J = pielou,
+    `Top-5 des pavillons et contribution à l'effort` = top5
+  )
+
+tbl <- summary_trawlers |> 
+  kbl(
+    format = "latex",
+    booktabs = TRUE,
+    align = "rrrrrrl",
+    escape = TRUE,
+    linesep = ""
+  ) |>
+  kable_styling(
+    latex_options = c("Hold_position", "striped", "scale_down")
+  ) |>
+  column_spec(7, width = "11cm")
+
+# |> 
+#   column_spec(1, width = "0cm") |> 
+#   column_spec(2, width = "1.2cm") |> 
+#   column_spec(3, width = "1.6cm") 
+
+saveRDS(tbl, "tables/clustering_trawlers_summary_tex.rds")
+```
+
+```{r}
+#| include: false
+
+bbox <- st_bbox(fao34_sf)
+bbox["xmin"] <- -20
+
+map_theme <- ggplot2::theme_minimal() + 
+  ggplot2::theme(
+    panel.border = element_blank(), 
+    legend.text = element_text(size = 8), 
+    legend.title = element_text(face = "bold", size = 8, hjust = 0.5), 
+    plot.title = element_text(face = "bold", size = 10), 
+    plot.subtitle = element_text(size = 10), 
+    axis.text = element_text(size = 6)
+  )
+
+p_map_kWh_trawlers <- ggplot() +
+  geom_tile(data = effort_ds$clean_effort |>
+              filter(region_type_fr == "ZEE", gear_type_fr == "Chaluts") |> 
+              summarize(kWh = sum(kWh, na.rm = TRUE),
+                        .by = c(lat, lon)),
+            aes(x = lon, y = lat, fill = kWh)) +
+  geom_sf(data = eez_overlap_sf, color = "black", fill = NA) +
+  geom_sf(data = fao34_sf, color = "black", fill = NA) +
+  geom_sf(data = ne_countries(returnclass = "sf", scale = "medium"), fill = "lightgrey") +
+  scale_fill_viridis_c(
+    trans = "log10",
+    na.value = NA
+  ) +
+  theme_minimal() +
+  coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]),
+           ylim = c(bbox["ymin"], bbox["ymax"])) +
+  labs(x = "", y = "", fill = "kWh") +
+  map_theme
+
+ggsave("figures/map_effort_kWh_trawlers.png",
+       plot = p_map_kWh_trawlers, width = 12, height = 8, dpi = 300)
+
+data <- results_trawlers$clusters |> 
+  left_join(
+    summary_trawlers,
+    by = join_by(cluster == id)
+  )
+
+p_map_S <- ggplot() +
+  geom_tile(data = data, aes(x = lon, y = lat, fill = S)) +
+  geom_sf(data = eez_overlap_sf, color = "black", fill = NA) +
+  geom_sf(data = fao34_sf, color = "black", fill = NA) +
+  geom_sf(data = ne_countries(returnclass = "sf", scale = "medium"), fill = "lightgrey") +
+  scale_fill_viridis_c() +
+  theme_minimal() +
+  coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]),
+           ylim = c(bbox["ymin"], bbox["ymax"])) +
+  labs(x = "", y = "", fill = "S") +
+  map_theme
+
+ggsave("figures/map_clustering_trawlers_richness.png",
+       plot = p_map_S, width = 12, height = 8, dpi = 300)
+
+p_map_H <- ggplot() +
+  geom_tile(data = data, aes(x = lon, y = lat, fill = `H'`)) +
+  geom_sf(data = eez_overlap_sf, color = "black", fill = NA) +
+  geom_sf(data = fao34_sf, color = "black", fill = NA) +
+  geom_sf(data = ne_countries(returnclass = "sf", scale = "medium"), fill = "lightgrey") +
+  scale_fill_viridis_c() +
+  theme_minimal() +
+  coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]),
+           ylim = c(bbox["ymin"], bbox["ymax"])) +
+  labs(x = "", y = "", fill = "H'") +
+  map_theme
+
+ggsave("figures/map_clustering_trawlers_shannon.png",
+       plot = p_map_H, width = 12, height = 8, dpi = 300)
+
+p_map_J <- ggplot() +
+  geom_tile(data = data, aes(x = lon, y = lat, fill = J)) +
+  geom_sf(data = eez_overlap_sf, color = "black", fill = NA) +
+  geom_sf(data = fao34_sf, color = "black", fill = NA) +
+  geom_sf(data = ne_countries(returnclass = "sf", scale = "medium"), fill = "lightgrey") +
+  scale_fill_viridis_c() +
+  theme_minimal() +
+  coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]),
+           ylim = c(bbox["ymin"], bbox["ymax"])) +
+  labs(x = "", y = "", fill = "J") +
+  map_theme
+
+ggsave("figures/map_clustering_trawlers_pielou.png",
+       plot = p_map_J, width = 12, height = 8, dpi = 300)
+
+
+p <- (p_map_kWh_trawlers | p_map_S) / (p_map_H | p_map_J) +
+  plot_annotation(tag_levels = 'a')
+
+ggsave("figures/map_clustering_trawlers_diversity.png",
+       plot = p, 
+       height = 30,
+       width = 30,
+       units = "cm",
+       dpi = 300)
+```
+
+![](figures/map_clustering_trawlers_diversity.png){width="16cm"}
+
+```{r}
+#| include: false
+
+library(raster)
+library(janitor)
+library(ggnewscale)
+library(ggpattern)
+
+output_file <- "figures/lme_eez_map.png"
+if (!file.exists(output_file)) {
+  
+  bathy <- raster("data/bathymetry.tif")
+  lme_sf <- st_read("data/shapefiles/lme-large-marine-ecosystems-main/polygons/shp/lme66.shp") |>
+    clean_names() |>  
+    filter(lme_number %in% c(27, 28))
+
+  # Prepare data for map
+  # Assign CECAF subgroups to EEZs
+  cecaf_north <- c("MAR", "ESH", "MRT", "SEN", "GMB")
+  cecaf_south <- c("CPV", "GNB", "GIN", "SLE", "LBR", "CIV", "GHA", "TGO", "BEN", "NGA", "CMR", "GNQ", "STP", "GAB", "COG", "COD", "AGO")
+  
+  eez_overlap_sf <- eez_overlap_sf |> 
+    mutate(
+      is_cecaf = case_when(
+        ISO_TER1 %in% cecaf_north | TERRITORY1 == "Canary Islands" ~ "COPACE sous-groupe Nord",
+        ISO_TER1 %in% cecaf_south ~ "COPACE sous-groupe Sud",
+        TRUE ~ "Hors évaluations COPACE"
+      )
+    )
+  
+  # Rename LMEs
+  lme_sf <- lme_sf |> 
+    mutate(
+      lme_name_fr = case_when(
+        lme_name == "Canary Current" ~ "Courant des Canaries",
+        lme_name == "Guinea Current" ~ "Courant de Guinée"
+      )
+    )
+  
+  # Prepare bathymetry df and create adequate binning
+  crs(bathy) <- "EPSG:4326"
+  bathy_cropped <- crop(bathy, extent(fao34_sf))
+  bathy_masked <- mask(bathy_cropped, fao34_sf)
+  bathy_masked[bathy_masked > 0] <- NA
+  bathy_df <- as.data.frame(bathy_masked, xy = TRUE, na.rm = TRUE)
+  colnames(bathy_df)[3] <- "bathymetry"
+  
+  bathy_df$bathy_bin <- cut(
+    bathy_df$bathymetry,
+    breaks = c(-8000, -1000, -200, 0),
+    labels = c("> 1000 m", "200–1000 m", "0–200 m"),
+    include.lowest = TRUE,
+    right = FALSE
+  )
+  bathy_df$bathy_bin <- factor(bathy_df$bathy_bin, levels = c( "0–200 m", "200–1000 m", "> 1000 m"))
+  
+  
+  # Map bounding box
+  bbox <- st_bbox(fao34_sf)
+  
+  # Plot map
+  p <- ggplot() +
+  
+    # LMEs
+    geom_sf(data = lme_sf, aes(fill = lme_name_fr), color = NA, alpha = 0.3) +
+    scale_fill_manual(
+      values = c("Courant des Canaries" = "yellow",
+                 "Courant de Guinée" = "green"),
+      name = "Large Marine Ecosystems"
+    ) +
+    
+    # Continental shelf
+    new_scale_fill() +
+    geom_raster(data = bathy_df, aes(x = x, y = y, fill = bathy_bin), alpha = 1) +
+    scale_fill_manual(
+      values = c(
+        "0–200 m" = "beige",
+        "200–1000 m" = "brown4",
+        "> 1000 m" = NA
+      ),
+      name = "Bathymétrie (m)",
+      na.value = NA
+    ) +
+    
+    # EEZs filled with dots and colored correponding to CECAF subgroup
+    geom_sf_pattern(data = subset(eez_overlap_sf, GEONAME != "Joint regime area Senegal / Guinea Bissau"),
+                    aes(color = is_cecaf, 
+                        pattern_fill = is_cecaf),
+                    pattern = "circle",
+                    pattern_color = NA,
+                    pattern_spacing = 0.01,
+                    pattern_size = 0.1,
+                    fill = NA,
+                    alpha = 1) +
+    scale_color_manual(
+      values = c("COPACE sous-groupe Nord" = "orange",
+                 "COPACE sous-groupe Sud" = "darkgreen",
+                 "Hors évaluations COPACE" = "grey"),
+      name = "ZEE d'évaluation des stocks côtiers"
+    ) +
+    scale_pattern_fill_manual(
+      values = c("COPACE sous-groupe Nord" = "orange",
+                 "COPACE sous-groupe Sud" = "darkgreen",
+                 "Hors évaluations COPACE" = "grey"),
+      name = "ZEE d'évaluation des stocks côtiers"
+    ) +
+    
+    # Black line delimiting the FAO region
+    geom_sf(data = fao34_sf, color = "black", fill = NA) +
+    geom_sf(data = ne_countries(returnclass = "sf", scale = "medium"), fill = "lightgrey") +
+    
+    # Tuning plot
+    coord_sf(xlim = c(bbox["xmin"], bbox["xmax"]),
+             ylim = c(bbox["ymin"], bbox["ymax"])) +
+    labs(x = "", y = "") +
+    map_theme
+
+  ggsave(output_file, plot = p, width = 12, height = 8, dpi = 300)
+}
+```
+
+![](figures/lme_eez_map.png){width="16cm"}
+
+```{r}
+#| include: false
+
+# Catch summary by area and functional group
+
+new_groups <- catch |> 
+  summarize(
+    tonnes = sum(tonnes, na.rm = TRUE),
+    .by = functional_group
+  ) |> 
+  arrange(desc(tonnes)) |> 
+  mutate(
+    cumulated_percent = 100 * cumsum(tonnes) / sum(tonnes),
+    functional_group2 = case_when(
+      cumulated_percent < 91 ~ functional_group,
+      TRUE ~ NA
+    )
+  )
+
+catch2 <- catch |> 
+  left_join(new_groups |> dplyr::select(functional_group, functional_group2),
+            by = "functional_group") 
+
+catch_fg_summary <- catch2 |>
+  summarize(
+    tonnes_per_y = sum(tonnes, na.rm = TRUE) / 5,
+    .by = c(area_name, functional_group2)
+  ) |>
+  group_by(functional_group2) |>
+  mutate(total = sum(tonnes_per_y, na.rm = TRUE)) |>
+  ungroup() |> 
+  mutate(
+    functional_group2 = fct_reorder(functional_group2, total),
+    functional_group2 = fct_explicit_na(functional_group2, "Other")
+  )
+
+p1 <- ggplot(catch_fg_summary,
+       aes(x = area_name, y = tonnes_per_y,
+           fill = functional_group2, total)) +
+  geom_col(color = "black", linewidth = .1) +
+  scale_fill_brewer(palette = "Set3",
+                    na.value = "grey50") +
+  theme_minimal() +
+  labs(x = "", y = "Captures (tonnes / an)",
+       fill = "Groupes fonctionnels SAU")
+
+```
+
+```{r}
+#| echo: false
+
+catch <- catch |>  
+  mutate(
+    fishing_entity = ifelse(fishing_entity == "Channel Isl. (UK)", "United Kingdom", fishing_entity),
+    fishing_entity = countrycode(fishing_entity, origin = "country.name", destination = "country.name.fr"),
+    flag_iso3c = countrycode(fishing_entity, origin = "country.name.fr", destination = "iso3c"),
+    is_waf_flag = flag_iso3c %in% west_africa_flags
+  )
+
+data <- catch |> 
+  summarize(
+    tonnes_per_y = sum(tonnes, na.rm = TRUE) / 5,
+    .by = c(fishing_entity, overexploitation_flag, is_waf_flag)
+  ) |> 
+  group_by(fishing_entity, is_waf_flag) |> 
+  summarise(
+    total_catch = sum(tonnes_per_y),
+    match_impossible_tonnes = sum(tonnes_per_y[overexploitation_flag == "Match impossible"]),
+    matched_total = sum(tonnes_per_y[overexploitation_flag != "Match impossible"]),
+    overexploited = sum(tonnes_per_y[overexploitation_flag == "Surexploitation probable"]),
+    not_overexploited = sum(tonnes_per_y[overexploitation_flag == "Non surexploitation probable"]),
+    missing_eval = sum(tonnes_per_y[overexploitation_flag == "Evaluations lacunaires"])
+  ) |> 
+  ungroup()
+
+catch_summary = data |> 
+  group_by(fishing_entity, is_waf_flag) |> 
+  mutate(
+    pct_unmatched = 100 * match_impossible_tonnes / total_catch,
+    pct_not_overexploited = 100 * not_overexploited / matched_total,
+    pct_overexploited = 100 * overexploited / matched_total,
+    pct_missing_eval = 100 * missing_eval / matched_total
+  ) |> 
+  ungroup() |>
+  mutate(
+    global_total_catch = sum(total_catch),
+    pct_global_catch = 100 * total_catch / global_total_catch
+  ) |> 
+  arrange(desc(total_catch)) |> 
+  mutate(cum_pct_catch = cumsum(pct_global_catch)) |> 
+  filter(cum_pct_catch <= 90) |> 
+  mutate(section = ifelse(is_waf_flag, "Pavillons ouest-africains", "Autres")) |> 
+  dplyr::select(fishing_entity, total_catch, pct_global_catch, pct_unmatched, 
+                pct_not_overexploited, pct_overexploited, pct_missing_eval, section)
+
+total_row <- catch |> 
+  mutate(section = "Total", fishing_entity = "") |> 
+  summarize(
+    tonnes_per_y = sum(tonnes, na.rm = TRUE) / 5,
+    .by = c(fishing_entity, overexploitation_flag, section)
+  ) |> 
+  group_by(fishing_entity, section) |>
+  summarise(
+    total_catch = sum(tonnes_per_y),
+    match_impossible_tonnes = sum(tonnes_per_y[overexploitation_flag == "Match impossible"]),
+    matched_total = sum(tonnes_per_y[overexploitation_flag != "Match impossible"]),
+    overexploited = sum(tonnes_per_y[overexploitation_flag == "Surexploitation probable"]),
+    not_overexploited = sum(tonnes_per_y[overexploitation_flag == "Non surexploitation probable"]),
+    missing_eval = sum(tonnes_per_y[overexploitation_flag == "Evaluations lacunaires"])
+  ) |> 
+  mutate(
+    pct_unmatched = 100 * match_impossible_tonnes / total_catch,
+    pct_not_overexploited = 100 * not_overexploited / matched_total,
+    pct_overexploited = 100 * overexploited / matched_total,
+    pct_missing_eval = 100 * missing_eval / matched_total
+  ) |> 
+  ungroup() |>
+  mutate(
+    global_total_catch = sum(total_catch),
+    pct_global_catch = 100 * total_catch / global_total_catch
+  ) |> 
+  dplyr::select(fishing_entity, total_catch, pct_global_catch, pct_unmatched, 
+                pct_not_overexploited, pct_overexploited, pct_missing_eval, section)
+
+table <- bind_rows(
+  catch_summary,
+  total_row
+  ) |> 
+  mutate(section = factor(section, levels = c("Total", "Pavillons ouest-africains", "Autres"))) |> 
+  arrange(section, desc(total_catch)) |> 
+  rename(
+    `Pavillon` = fishing_entity,
+    `Captures (t/an)` = total_catch,
+    `(%)` = pct_global_catch,
+    `Taxons non identifiés (%)` = pct_unmatched,
+    `Non surexpl. probable (%)` = pct_not_overexploited,
+    `Surexpl. probable (%)` = pct_overexploited,
+    `Evaluation lacunaires (%)` = pct_missing_eval,
+  ) |> 
+  mutate(
+    `Captures (t/an)` = formatC(`Captures (t/an)`, format = "e", digits = 1), 
+    across(contains("%"), function(x) {round(x, 1)})
+  )
+
+tot_stop <- 1
+waf_stop <- tot_stop + table |> filter(section == "Pavillons ouest-africains") |>  nrow()
+other_stop <- waf_stop + table |> filter(section == "Autres") |>  nrow()
+
+bold_rows <- which(as.numeric(table$`Non surexpl. probable (%)`) < 20)
+
+# Create and render the table
+tbl <- table |>
+  dplyr::select(-section) |> 
+  kable(
+    format = "latex",
+    booktabs = TRUE,
+    align = "lrlrrrr",
+    escape = TRUE,
+    linesep = ""
+  ) |>
+  add_header_above(
+    c(" " = 3, "Taxons identifiés" = 4)
+  ) |> 
+  pack_rows("Total", 1, tot_stop, latex_gap_space = "0.3em") |>
+  pack_rows("Pavillons ouest-africains", tot_stop + 1, waf_stop, latex_gap_space = "0.3em") |>
+  pack_rows("Autres", waf_stop + 1, other_stop, latex_gap_space = "0.3em") |>
+  kable_styling(
+    latex_options = c("Hold_position", "striped", "scale_down")
+  )
+
+saveRDS(tbl, "tables/overexploitation_summary_by_flag_tex.rds")
+```
+
+```{r}
+#| echo: false
+
+data_imo <- effort_ds$clean_effort |> 
+  mutate(
+    imo_confidence = case_when(
+      !is.na(imo_confidence_status) ~ paste0(imo_confidence_code, ": ", imo_confidence_status),
+      TRUE ~ "5: No IMO number found"
+    )
+  ) |> 
+  summarize(
+    fishing_hours = sum(apparent_fishing_hours, na.rm = TRUE),
+    n_imos = n_distinct(assigned_imo, na.rm = TRUE),
+    n_vessel_ids = n_distinct(vessel_id, na.rm = TRUE),
+    n_mmsis = n_distinct(mmsi, na.rm = TRUE),
+    gt = sum(tonnage_gt_gfw, na.rm = TRUE),
+    .by = imo_confidence
+  ) |> 
+  arrange(imo_confidence) |> 
+  mutate(
+    fishing_hours_percent = 100 * fishing_hours / sum(fishing_hours),
+    n_imos_percent = 100 * n_imos / sum(n_imos),
+    n_vessel_ids_percent = 100 * n_vessel_ids / sum(n_vessel_ids),
+    n_mmsis_percent = 100 * n_mmsis / sum(n_mmsis),
+    gt_percent = 100 * gt / sum(gt),
+  ) |> 
+  relocate(
+    imo_confidence,
+    n_imos, n_imos_percent,
+    n_vessel_ids, n_vessel_ids_percent,
+    n_mmsis, n_mmsis_percent,
+    gt, gt_percent,
+    fishing_hours, fishing_hours_percent
+  ) |> 
+  mutate(
+    imo_confidence = case_when(
+      grepl("1", imo_confidence) ~ "1: IMO fourni par GFW",
+      grepl("2", imo_confidence) ~ "2: Match direct dans GISIS",
+      grepl("3", imo_confidence) ~ "3: Match indirect non-ambigu",
+      grepl("4", imo_confidence) ~ "4: Match indirect ambigu",
+      grepl("5", imo_confidence) ~ "5: IMO non identifié"
+    ),
+    across(contains("percent"), function(x){round(x, 1)})
+  )
+
+colnames = c(
+  "Indice de confiance",
+  "IMO", "(%)",
+  "Id. GFW", "(%)",
+  "MMSI", "(%)",
+  "GT (%)",
+  "Heures (%)"
+)
+
+tbl <- data_imo |>
+  dplyr::select(-gt, -fishing_hours) |> 
+  kable(
+    format = "latex",
+    booktabs = TRUE,
+    align = "lrlrlrlrrr",
+    escape = TRUE,
+    linesep = "",
+    col.names = colnames
+  ) |>
+  kable_styling(
+    latex_options = c("Hold_position", "striped", "scale_down")
+  )
+
+saveRDS(tbl, "tables/imo_confidence_summary_tex.rds")
+```
+
+```{r}
+#| echo: false
+
+summary_inshore <- inshore_ds$clean_effort |> 
+  filter(gear_type_fr == "Chaluts") |> 
+  mutate(
+    inshore_fishing_flag = case_when(
+      inn_fishing ~ "INN",
+      would_be_inn ~ "Problématique",
+      in_12nm ~ "Autre",
+      TRUE ~ "> 12 nm"
+    ),
+    inshore_fishing_flag = factor(inshore_fishing_flag, levels = c("> 12 nm", "Autre", "Problématique", "INN"))
+  ) |> 
+  summarize(
+    kWh = sum(kWh, na.rm = TRUE) / 5,
+    .by = c(guo_country_iso3, inshore_fishing_flag)
+  )
+
+summary_inshore <- summary_inshore |> 
+  group_by(guo_country_iso3) |> 
+  mutate(total_kWh = sum(kWh)) |> 
+  ungroup() |> 
+  mutate(kWh_pct = ifelse(total_kWh == 0, 0, 100 * kWh / total_kWh))
+
+
+data <- summary_inshore |> 
+  filter(inshore_fishing_flag != "> 12 nm", !is.na(guo_country_iso3)) |> 
+  group_by(guo_country_iso3) |> 
+  mutate(
+    total_kWh_in_12nm = sum(kWh),
+    total_kWh_in_12nm_pct = ifelse(total_kWh == 0, 0, 100 * total_kWh_in_12nm / total_kWh),
+    name = ifelse(
+      is.na(guo_country_iso3), NA,
+      countrycode(guo_country_iso3, origin = "iso3c", destination = "country.name.fr")
+    )
+  ) |> 
+  ungroup()
+  
+p_inshore <- data |> 
+  filter(total_kWh_in_12nm_pct >= 5) |> 
+  ggplot(aes(x = fct_reorder(name, total_kWh_in_12nm_pct), y = kWh_pct, fill = inshore_fishing_flag)) +
+  geom_col() +
+  coord_flip() +
+  labs(x = "Nationalité du GUO", y = "Part de l'effort (%kW.h.an-1)", fill = "") +
+  theme_minimal() +
+  scale_fill_manual(values = c("grey", "#f38400","#be0032"))
+
+ggsave("figures/inshore_impact_barplot.png",
+       p_inshore,
+       height = 10,
+       width = 16,
+       unit = "cm")
+```
+
+![](figures/inshore_impact_barplot.png){width="13cm"}

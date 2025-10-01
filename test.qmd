@@ -1,0 +1,22 @@
+---
+title: "Test Table for DOCX"
+format:
+  docx:
+    toc: true
+    number-sections: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+library(flextable)
+
+combined <- head(mtcars[, 1:5])
+
+ft <- flextable(combined)
+ft <- set_caption(ft, "A test table rendered with flextable.")
+
+ft
+```

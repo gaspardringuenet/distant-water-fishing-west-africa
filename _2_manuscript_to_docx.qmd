@@ -1,0 +1,1089 @@
+---
+title: "Pêche industrielle en Atlantique Centre-Est"
+subtitle: "Structure, impact et responsabilité de la pêche distante"
+author: "Gaspard Ringuenet"
+
+bibliography: report/references.bib
+csl: report/deep-sea-research-part-i.csl
+
+language: 
+  toc-title-document: "Sommaire"
+  lof-title-document: "Liste des Figures"
+  lot-title-document: "Liste des Tables"
+
+format:
+  docx:
+    reference-doc: report/template.docx
+    toc: true
+    lof: true
+    lot: true
+    number-sections: true
+    link-citations: true
+    lang: fr
+
+execute:
+  freeze: auto
+---
+
+# Introduction
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+## Pêche distante : conflits, expansion et domination du nord global
+
+Définie comme le fait de pêcher dans des zones lointaines des eaux domestiques, la pêche distante est un phénomène dont on trouve des exemples jusqu'au XVIe siècle, avec la pêche à la morue en Terre-Neuve. L'avènement des chalutiers à vapeur européens - et notamment britanniques - à la fin du XIXe siècle a marqué le début de son expansion rapide. La forte augmentation de la capacité de pêche a rapidement conduit aux premiers signes de surexploitation. La compétition et les conflits entre les secteurs artisanal et industriel domestiques qui en ont résulté ont poussé les flottes de chalutiers à étendre leur zones d'activités au large et chez les pays voisins [@knauss2005]. La capacité et l'emprise spatiale des flottes de pêche industrielle ont ensuite fortement augmenté durant le XXe siècle [@tickler2018; @swartz2010]. Après 1950, les pays riches subventionnent fortement leur flottes [@sumaila2019], qui s'équipent de nouvelles technologies développées pour la marine de guerre (motorisation, systèmes de positionnement, sonar) [@holm2012], dans le but de répondre à l'augmentation de la demande mondiale en produits de la mer [@watson2015; @swartz2010a]. L'explosion de l'effort de pêche industrielle entraîne rapidement la surexploitation des ressources domestiques, poussant les flottes industrielles vers les tropiques et les ZEE de pays en développement [@swartz2010].
+
+Cette expansion a été à l'origine de nombreux conflits entre pêcheurs domestiques et étrangers. Ceux-ci ont joué un rôle historique dans le développement du droit de la mer et les négociations internationales qui aboutirent en 1982 à l'adoption de la Convention des Nations Unis sur le Droit de la Mer (CNUDM). Les article 56 et 57 de la convention établissent la possibilité pour les pays côtiers de déclarer des zones économiques exclusives (ZEE) s'étendant jusqu'à 200 milles nautiques de la côte [@unitedn1982]. Dans sa ZEE, un État a la responsabilité et le contrôle exclusif de l'exploitation, de la gestion et de la conservation des ressources, en particulier halieutiques. Mettant fin à l'accès libre aux ressources marines, la CNUDM n'est cependant pas conçue comme un frein à la pêche distante. Au contraire, l'article 62 instaure la notion de surplus, enjoignant aux états qui n'exploitent pas pleinement - i.e. au rendement maximum durable (RMD) - leurs ressources halieutiques d'ouvrir leurs ZEE aux flottes de pêche étrangère.
+
+"\[...\] Where the coastal State does not have the capacity to harvest the entire allowable catch, it shall, through agreements or other arrangements \[...\] give other States access to the surplus of the allowable catch \[...\]"
+
+Cette réglementation induit une séparation entre les états détenteurs de ressources (en anglais resource holders), principalement composés de pays en développement disposant d'une capacité de pêche industrielle limitée et dont les eaux sont très productives, et les états chercheurs de ressources (resource seekers), développés et possédant de grandes flottes de pêche distante. Puisque les États chercheurs de ressources possèdent déjà la capacité pour exploiter pleinement leurs stocks, il s'installe alors une certaine dichotomie entre les deux catégories. En conséquence, on observe que les grandes nations de pêche du nord global ont rapidement négocié de nombreux accords pour l'accès à la pêche, en particulier dans les eaux des pays côtiers en développement [@garcia2014; @alder2004; @lemanach2013; @mallory2013].
+
+Les accords de pêche, qui ouvrent les ZEE des pays détenteurs de ressources à la pêche étrangère en échange d'une contrepartie financière, sont l'objet de critiques en raison de leurs impacts socio-économiques et environnementaux sur les pays en développement. Issus de négociations fortement asymétriques, les conditions mêmes des accords sont jugées peu durables et équitables [@belhabib2015; @campling2024]. Les conflits pour l'espace et la ressource avec les secteurs de pêche locaux, et en particulier la petite pêche, sont également fréquents, entraînant la diminution des moyens de subsistance domestiques et l'augmentation du risque d'insécurité alimentaire chez les communautés côtières [@belhabib2020; @okafor-yarwood2022; @spijkers2019; @spijkers2021]. De plus, en ouvrant la pêche aux flottes étrangères dans des pays au capacité de surveillance limités, les accords peuvent contribuer au développement de la pêche illégale, non déclarée et non réglementée (INN), aggravant encore les conséquences pour les communautés côtières [@lemanach2012; @belhabib2020; @seto2017]. A cela s'ajoute la corruption des représentants des pays détenteurs de ressources, dont Stäbler [-@stäbler2022] estime qu'elle est instrumentalisée par les nations de pêche distante. Le manque de gouvernance pourrait même être le résultat de la présence des nations de pêche distante dans une région donnée, avec le concept de criminalité politico-économique [@standing2015].
+
+Enfin plusieurs mécanismes contribuent à instaurer une relation de dépendance des pays détenteurs de ressources vis-à-vis des accords de pêche : dépendance aux revenus générés par l'accord, accord comme prérequis pour obtenir de l'aide au développement [@standing2011], accord nécessaire pour développer le commerce international [@hammarlund2019]. Ceci a contribué à verrouiller un système inégalitaire, dans lequel la pêche industrielle mondiale est dominée par les compagnies des pays du nord [@mccauley2018; @virdin2021; @carmine2020].
+
+## Le cas de l'Afrique de l'Ouest
+
+L'Afrique de l'Ouest est un modèle historique de pêche distante des pays du nord dans une région riche en ressources et peu développée. En effet, la zone Atlantique Centre-Est (zone FAO n°34) est la première zone FAO en termes de captures de pêche distante pendant la seconde moitié du XXe siècle [@bonfil1998]. Elle abrite des eaux parmi les plus productives au monde, divisées en deux large marine ecosystems (LME) : le courant des Canaries (caractérisé par un important système d'upwelling en Mauritanie) et le courant de Guinée; supportant d'important stocks de petits poissons pélagiques et d'espèces démersales.
+
+La pêche distante y existe avant la CNUDM [@bonfil1998; @alder2004; @fao2022] et les conditions sont réunies pour que les pays côtiers de la régions négocient des accords avec les nations de pêche distante une fois leurs ZEE déclarées. En effet, les économies des pays côtiers de la FAO 34 sont peu développées, de même que leurs flottes industrielles domestiques [@bonfil1998]. Ils espèrent alors obtenir des accords plusieurs bénéfices : revenus associés aux licences, augmentation de la capacité de pêche domestique, développement et fourniture de matières premières aux usines de conditionnement locales [@fao2022]. Des autorisations de pêche sont donc négociées sous plusieurs formes [@bonfil1998; @mallory2013; @belhabib2015] : contrats de licence (négociés entre États) ou accords passés entre les compagnies et les gouvernements (firm-to-government). Ces derniers peuvent être de "première génération" avec des prix fixes pour les licences, ou de "seconde génération", basé sur des joint-ventures : associations d'entreprises mêlant capitaux étrangers et domestiques [@fao2022].
+
+La pêche distante dans la région vise principalement les petits poissons pélagiques et les espèces démersales, au chalut [@belhabib2017]. Les flottes de chalutiers sont traditionnellement originaires de l'UE et d'ex-URSS, mais dans les dernières années la flotte chinoise est devenue prédominante [@pauly2014]. Les chalutiers européens opèrent principalement en Mauritanie et en Guinée-Bissau dans le cadre d'accords passés entre gouvernements, tandis que le reste opère dans l'ensemble de la région via des accords passés firm-to-government [@fao2022].
+
+Le contexte socio-économique et politique de la région est par ailleurs propre à favoriser les effets négatifs de la pêche distante. D'une part, les pays côtiers de l'Atlantique Centre-Est sont parmi les plus pauvres au monde, endettés, et instables politiquement, renforçant leur dépendance aux revenus à court terme générés par les accords et diminuant donc leur pouvoir de négociation. D'autre part la corruption systémique et la faible gouvernance des pêches y favorisent des autorisations opaques, économiquement sous-optimales et écologiquement insoutenables [@stäbler2022; @standing2015; @virdin2019; @akpalu2021]. En conséquence, le chalutage étranger est associé à d'importants impacts écologiques et sociaux [@akpalu2021], ou encore à la pêche INN [@belhabib2020; @mpaono2019]. Ces impacts sont d'autant plus marqués qu'une part importante de la population locale dépend de l'activité de pêche artisanale comme moyen de subsistance ou comme source de nourriture bon marché [@fao2024]. Les effets sont considérables, entraînant l'appauvrissement des communautés côtières et la migration des pêcheurs artisans, sources à leur tour de tensions économiques et de conflits [@dème2024].
+
+## Information et responsabilité : les bases de la transparence dans les pêcheries distantes
+
+Face aux conséquences néfastes et à des bénéfices moins élevés qu'anticipé, les pays côtiers cherchent à mieux contrôler la pêche étrangère.
+
+Cette démarche se heurte à plusieurs obstacles, dont le manque de transparence dans la gouvernance des pêches [@guggisberg2022]. Skerritt [-@skerritt2024] a développé un cadre conceptuel identifiant et hiérarchisant six composantes clés de la transparence des pêcheries. Deux éléments sont considérés comme les bases permettant l'obtention des résultats d'une politique des pêche transparente (décisions ouvertes, participation, mise en application et efficacité) : l'information et la capacité à tenir les acteurs pour responsables.
+
+### Sources d'information
+
+A partir de 1950, la collecte de données par la Food and Agriculture Organization (FAO) sur les pêcheries mondiales représente le principal effort institutionnel international pour la diffusion d'information sur la pêche industrielle. Cependant, ces données sont dépendantes du reporting des états de pavillon, dont la qualité comme l'étendue varie grandement, autant entre États que d'une année sur l'autre. Le projet Sea Around Us (SAU) remédie à plusieurs lacunes dans les données déclarées par la FAO au nom des états en reconstituant les captures non déclarées à l'aide de sources de données complémentaires et d'expertise locale afin d'étendre et d'harmoniser les données officielles déclarées. Ce processus de reconstruction des données sur les captures permet également aux données de Sea Around Us de séparer les pêches industrielles de grande envergure des pêches artisanales, de subsistance et récréatives relativement locales [@chuenpagdee2006; @pauly2016; @pauly2016a].
+
+Les applications récentes des données de l’Automatic Identification System (AIS) pour suivre les trajectoires des navires de pêche ont révolutionné l'étude de l'effort de pêche industriel mondial. Initialement développée pour sécuriser le trafic maritime, la technologie AIS consiste en des émissions fréquentes de l'identité et du positionnement GPS (entre autres informations) par un émetteur radio embarqué sur le navire. Cet équipement est obligatoire pour les navires de plus de 300 GT en déplacement international [@internat1974; @revised2015]. En comparant le nombre de navires de pêche émettant par AIS avec les statistiques de la flotte mondiale compilée par la FAO, Taconet et al. [-@taconet2019] estiment que la technologie couvre jusqu'à 84 % des navires de plus de 24 m et 19 % des 12-24 m en 2017. Malgré un fort taux d'augmentation de la couverture ces dernières années (+10 à +30 % de navires détectés entre 2014 et 2017), le suivi par AIS reste consacré à la surveillance de la pêche industrielle. Kroodsma et al. [-@kroodsma2018] ont développé des méthodes d'analyses des trajectoires AIS permettant d'inférer entre autres le type d'engin et les évènements de pêche des navires. La plateforme Global Fishing Watch (GFW) constitue désormais une source majeur d'informations sur l'effort de pêche industriel et et le suivi de la pêche INN à l'échelle mondiale [@taconet2019; @mccauley2018; @tickler2018; @park2023]. Elle a déjà été exploitée avec succès pour étudier la pêche distante en Afrique [@belhabib2020; @li2021; @cappa2024].
+
+### Propriété des navires : la clé de la responsabilité
+
+Si de telles initiatives permettent une diffusion inédite de l'information concernant les impacts des pêcheries distantes, Kinds et al. [-@kinds2025] remarquent que la majorité des études qui traitent du sujet sont conduites à l'échelle des pavillons, i.e. agrégées par états d'immatriculation des navires. Cette approche présente d'importantes limites vis-à-vis de l'attribution des responsabilités puisque les navires sont opérés par des compagnies privées [@carmine2020; @fao2022] avec un rôle important de quelques grandes compagnies transnationales [@österblom2015; @virdin2021] dont Standing [-@standing2015] estime que la pêche INN fait partie intégrante de leur stratégie.
+
+Identifier les propriétaires ultimes des compagnies de pêche est difficile à cause de structures souvent opaques et complexes avec un grand nombre de filiales [@carmine2020; @griggs2007]. Les grandes compagnies de pêche utilisent plusieurs stratégies pour contourner les régulations et maximiser leurs profits : pavillons de complaisance et "reflagging" (changement de pavillon) fréquent [@park2023], paradis fiscaux et sociétés écrans [@galaz2018], liens étroits avec les décideurs politiques [@standing2015] ou encore joint-ventures [@garcía-del-hoyo2021]. Sur ce dernier point la FAO [-@fao2022] insiste, dans le cas particulier de l'Afrique de l'Ouest, sur l'émergence de plus en plus de "fausses joint-ventures" à mesure que les pays côtiers cherchent à restreindre l'accès à leurs ressources naturels aux opérateurs nationaux. Dans ces accords d'accès de seconde génération, le partenaire Africain fait office de prête-nom. Une faible part de capitaux nationaux sont engagés, et l'entreprise peut alors pêcher sans restriction. Ce phénomène est par exemple si fréquent parmi les chalutiers chinois d'Abidjan qu'on parle d'"ivoirisation" des navires.
+
+## Objectifs
+
+On se propose tout d'abord d'actualiser les connaissances sur les caractéristiques de la pêche industrielle en Atlantique Centre-Est. A l'aide des données basées sur la technologie AIS fournies par Global Fishing Watch, la distribution de la capacité et de l'effort de pêche seront analysées. On cherchera à comparer les secteurs industriels domestiques et distants, puis à identifier les principaux acteurs (pavillons et types d'engin). Les données de captures reconstruites du Sea Around Us seront ensuite analysées et comparées avec les évaluations des stocks disponibles pour estimer le niveau de surpêche associé à la pêche distante.
+
+Dans un second temps, une analyse de la propriété des navires opérants dans la zone sera proposée, inspirée de la méthodologie de @kinds2025.
+
+En troisième partie on se concentrera sur la flotte de chalutiers opérants dans la zone FAO 34. Son impact sur l'abrasion des fonds marins et les comportements de pêche INN dans les eaux territoriales des États côtiers seront étudiés suivant des méthodes existantes [@belhabib2020; @eigaard2017] . Dans un objectif d'attribution des responsabilités, les métriques d'impacts calculées seront ensuite agrégées par entités propriétaires des navires (compagnies et états d'enregistrement de celles-ci).
+
+# Matériels et méthodes
+
+```{r}
+#| include: false
+
+library(dplyr)
+library(readr)
+library(janitor)
+library(sf)
+library(knitr)
+library(kableExtra)
+library(countrycode)
+library(openxlsx)
+library(ggplot2)
+library(patchwork)
+library(grid)
+library(magick)
+
+# Load polygons
+fao34_sf <- st_read("data/shapefiles/FAO_AREAS_CWP_NOCOASTLINE/FAO_AREAS_CWP_NOCOASTLINE.shp") |> filter(F_CODE == 34)
+eez_sf <- st_read("data/shapefiles/FAO34_EEZ/eez_fao34.shp")
+eez_overlap_sf <- eez_sf |>
+  st_intersection(fao34_sf |> dplyr::select(geometry))
+
+# Load dataset
+effort_ds <- readRDS("output/clean_data/apparent_fishing_effort.rds")
+bottom_ds <- readRDS("output/clean_data/bottom_trawling.rds")
+inshore_ds <- readRDS("output/clean_data/inshore_fishing_eez_trawlers.rds")
+catch <- readRDS("output/clean_data/catch.rds")
+
+effort_ds$clean_effort <- effort_ds$clean_effort |> 
+  mutate(is_european_guo = guo_country_iso3 %in% pull(read.xlsx("https://www.dropbox.com/s/dp8l4nz8fmr5v10/eu27_iso_codes.xlsx?dl=1")))
+```
+
+## Cadre spatio-temporel
+
+```{r}
+#| echo: false
+
+bbox <- st_bbox(fao34_sf)
+a <- as.numeric(st_area(fao34_sf) / 1e12) # on passe des m2 aux millions de km2
+a <- round(a, 1)
+```
+
+La zone d'étude est l'Atlantique Centre-Est (zone FAO n°34), qui s'étend de `{r} -round(bbox[["ymin"]], 1)`°S à `{r} round(bbox[["ymax"]], 1)`°N en latitude et de `{r} -round(bbox[["xmin"]], 1)`°O à `{r} round(bbox[["xmax"]], 1)`°E en longitude pour une surface totale de `{r} a` millions de km^2^. Elle recouvre les ZEE de `{r} length(unique(eez_sf$SOVEREIGN1))` pays.
+
+Concernant le cadre temporel de l'étude on s'efforce de fournir l'image la plus récente possible en fonction de la disponibilité des données. Pour l'étude de la capacité et de l'effort de pêche de la flotte industrielle visible par AIS, on intègre les données GFW disponible sur cinq ans, de 2020 à 2024. L'année 2020 correspond à la stabilisation du nombre de navires détectés par an, indiquant qu'un palier est atteint dans l'augmentation de la couverture AIS (@fig-n-vessels). De plus, les études les plus récentes sur l'effort de pêche apparent par AIS en Afrique utilisent des données antérieures [@li2021; @belhabib2020]. De cette façon notre étude constitue une mise-à-jour.
+
+Les données de captures fournies par le SAU pour la zone FOA 34 et les LME qui la composent couvrent la période de 1950 à 2019 avec une résolution annuelle.
+
+L'étude de la propriété des navires fait appel à un fournisseur externe (ORBIS) et les données obtenues ne sont que valables qu'à l'instant de la requête (avril 2025).
+
+Les données sur le chalutage de fond fournies par GFW ne couvrent pas l'année 2024. On restreint l'analyse du chalutage de fond à la période 2020-2023. Le reste des calculs sont effectuée sur la période 2020-2024. On fait l'hypothèse que les zones de restrictions fournies par @belhabib2020 sont inchangées à cette date. De même, on fait l'hypothèse que les propriétaires ultimes des navires changent peu en 5 ans.
+
+## Description de la flotte de pêche industrielle : capacité, effort et captures
+
+### Capacité et effort de pêche apparent {#sec-gfw-data}
+
+Les données d’effort de pêche sont fournies par Global Fishing Watch [@kroodsma2018] sur la base d'une analyse des trajectoires des navires de la flotte mondiale. Ces trajectoires sont dérivées des positionnements du système d’identification automatique (AIS; voir @sec-ais). Un travail de recoupement des informations contenues dans les messages AIS avec les registres de flottes mondiaux permet d'obtenir des informations sur le type de navires (pêche ou autre) et sur le type d'engin utilisé (pour les navires de pêche) pour une sous-partie de la flotte visible par AIS. Ces informations sont utilisées pour entraîner un réseau de convolution à classifier les trajectoires des navires suivant une classification hiérarchique. Pour plus de simplicité, on agrège les catégories d'engins de pêche fournies par GFW en 8 classes : "Chaluts", "Lignes et hameçons", "Arts dormants", "Sennes coulissantes au thon", "Autres sennes", "Turluttes", "Dragues" et "Inconnus" (@fig-classes-GFW).
+
+Un second réseau de neurones est entraîné sur la base d'annotations expertes pour la détection des évènements de pêche des navires. GFW utilise ces deux réseaux pour analyser en temps quasi réel les trajectoires de la flotte mondiale de navires équipés d'émetteurs AIS, et fournit le résultat sous la forme de temps de pêche apparent par carré statistique et unité de temps. L'emploi du terme apparent souligne l'aspect indirect et biaisé du résultat, qui dépend notamment du choix des navires d'émettre des messages AIS, du type de transpondeur, encore de la couverture satellite et du nombre de navires émettant dans une région donnée [@taconet2019].
+
+![Classification hiérarchique des engins de pêche prédits par le réseau de convolution de GFW à partir des trajectoires AIS des navires (gauche) et classification simplifiée utilisée dans l'étude (droite). La correspondance entre les classes est illustrée par un code couleur. Adapté de @cappa2024.](figures/gear_types_gfw_and_new.png){#fig-classes-GFW width="500"}
+
+On extrait un raster de l'effort de pêche individuel spatialisé avec une maille carrée de côté 0.1° dans l'ensemble de la zone FAO n°34 sur une période de cinq ans allant du 1er janvier 2020 au 31 décembre 2024, avec une résolution temporelle d'un mois. Les données sont téléchargées via le package R *gfwr* en avril 2025. L'effort est agrégé par identifiant GFW des navires. Cette identifiant regroupe des trajectoires dont GFW estime qu'elle appartiennent au même navire physique (voir @sec-identite-navires).
+
+```{r}
+#| echo: false
+
+initial_effort <- effort_ds$initial_fishing_time
+discarded_effort <- effort_ds$initial_fishing_time - effort_ds$total_fishing_time
+discarded_pct <- round(100 * discarded_effort / initial_effort, 1)
+
+discarded_mmsis <- effort_ds$small_efforts |> distinct(mmsi) |> nrow()
+clean_vessel_ids <- effort_ds$clean_effort |> distinct(vessel_id) |> nrow()
+clean_mmsis <- effort_ds$clean_effort |> distinct(mmsi) |> nrow()
+```
+
+Pour éviter les artefacts et simplifier les analyses, on exclut les évènements de pêche à moins de 5 km des ports - avec cette résolution spatiale cela revient à exclure les cellules contenant un port de l'analyse -, ainsi que les numéros MMSI associés à moins de 2000 heures de pêche sur la période (`{r} discarded_mmsis` numéros MMSI). Ce filtre n'exclut que `{r} discarded_pct` % du temps de pêche apparent. Les données finales correspondent à l'effort de `{r} clean_vessel_ids` identifiants GFW (`{r} clean_mmsis` numéros MMSI) différents pour un total de `{r} round(effort_ds$total_fishing_time/1e6, 1)` millions d'heures de pêche.
+
+```{r}
+#| echo: false
+
+min_LOA <- round(min(effort_ds$clean_effort$length_m_gfw, na.rm = TRUE), 1)
+
+n_na <- effort_ds$clean_effort |> distinct(mmsi, length_m_gfw) |> filter(is.na(length_m_gfw)) |> nrow()
+n_minus_15 <- effort_ds$clean_effort |>  distinct(mmsi, length_m_gfw) |> filter(length_m_gfw <= 15) |> nrow()
+```
+
+Le classifieur de GFW prédit aussi la taille, la puissance et le tonnage des navires. Tout ou partie de ces caractéristiques étant renseignées dans les registres, GFW fournit les valeurs enregistrées (si elles existent) ou prédites pour la taille (LOA en mètres), la puissance du moteur (kW) et le tonnage brut (GT) des navires identifiés par les combinaisons MMSI-Année. On utilise ces attributs pour joindre ces informations de façon unique aux observations d'effort de pêche apparent. On confirme ainsi que la flotte visible par AIS est une flotte de pêche industrielle. Seulement `{r} n_minus_15` navires font moins de 15 m, une limite communément acceptée pour définir la pêche industrielle en fonction de la taille des navires.
+
+On définit l'effort de pêche individuel d'un navire comme le produit de la puissance maximale de son moteur et de son temps de pêche apparent. L'unité d'effort est donc le kW.heure (abrégé kW.h). Cette variable permet la prise en compte de la capacité individuelle du navire. Dans la suite, l'effort est compté par défaut en kW.heures. On précisera si l'effort est compté en heures.
+
+On analyse la distribution spatiale de l'effort de pêche en contrastant la pêche domestique, i.e. effectuée par un pays côtier dans sa propre ZEE, et la pêche distante. La seconde est définie comme le complémentaire de la pêche domestique. Elle peut être effectuée par des pays africains de l'Atlantique Centre-Est (on parle de pêche distante ouest-africaine) ou non. Les pays ouest-africains sont définis comme ceux dont la ZEE intersecte la zone FAO n°34, à l'exception de trois pays : l'Espagne avec les Îles Canaries, le Portugal avec les Açores et Madère, et le Brésil. La pêche par des navires marocains (pavillonnés au Maroc) dans les eaux du Sahara occidental est considérée comme domestique ici, puisque le Maroc administre de fait la ZEE et délivre les autorisations de pêche aux autres états.
+
+### Régionalisation
+
+On définit une flottille comme un couple pavillon-engin. Dans une approche inspirée par l'écorégionalisation, on cherche à regrouper les cellules pour lesquelles la composition de l'effort par flottille est similaire. Pour ce faire on réalise une classification ascendante hiérarchique des cellules avec contrainte de proximité géographique à l'aide du package R *hclustGeo*. L'effort en kW.heures est agrégé par flottille et par cellule, puis la matrice de dissimilarité de l'effort est calculée avec la distance euclidienne après transformation de Hellinger. La classification prend en compte une matrice de distance géographique entre cellules. L'importance de la distance géographique est contrôlée par un paramètre $\alpha \in [0;1]$.
+
+La méthode est appliquée sur deux sous-ensembles du jeu de donnée d'effort de pêche apparent : le plateau océanique comprenant les cellules avec une bathymétrie supérieure à 1000 m, et le plateau continental (bathymétrie de 0-1000 m). Dans le premier cas on agrège l'effort par cellule de maille 0.5°. Dans le second étant donné la prééminence du chalut on ne conserve que les chalutiers dans l'analyse.
+
+La pertinence de l'approche et le nombre optimal de groupes sont évalués à l’aide d’un critère de silhouette, en testant différentes combinaisons des paramètres $(\alpha, k)$ où $k$ est le nombre de clusters. Lorsque les résultats sont concluants on cartographie des régions homogènes en composition de l'effort. Dans la continuité de l'analogie écologique on compare ensuite ces régions en fonction de différents indices de diversité.
+
+### Captures, évaluations des stocks et surpêche
+
+```{r}
+#| include: false
+
+catch_raw <- read_csv("data/catch/reconstructed_catch/SAU FAO 34 v50-1/SAU FAO 34 v50-1_fixed.csv") |> clean_names()
+
+# Assessing the proportion of historical catch by each sector in the "raw" catch data
+data <- catch_raw |> 
+  summarize(
+    tonnes = sum(tonnes, na.rm = TRUE),
+    .by = fishing_sector
+  ) |> 
+  mutate(
+    tonnes_percent = 100 * tonnes / sum(tonnes)
+  )
+
+indus_percent <- data |> filter(fishing_sector == "Industrial") |> pull(tonnes_percent)
+artisanal_percent <- data |> filter(fishing_sector == "Artisanal") |> pull(tonnes_percent)
+subsistence_percent <- data |> filter(fishing_sector == "Subsistence") |> pull(tonnes_percent)
+recreational_percent <- data |> filter(fishing_sector == "Recreational") |> pull(tonnes_percent)
+
+# The final catch, only industrial fishing
+
+n_taxa <- catch |> distinct(scientific_name) |> nrow()
+```
+
+On utilise les captures reconstruites du *Sea Around Us* (SAU) pour l'Atlantique Centre-Est ([www.seaaroundus.org](https://www.seaaroundus.org/data/)). Les captures côtières sont obtenues en téléchargeant les séries temporelles pour les LME des courants des Canaries et de Guinée. Ceux-ci englobent la plupart des ZEE - à l'exception du Cap-Vert - et la totalité du plateau continental, et sont presque entièrement contenus dans la zone FAO n°34. On obtient les captures en haute mer par soustraction des captures côtières aux captures totales dans la zone.
+
+Le SAU catégorise les captures par secteur de pêche. Les captures historiques des secteurs correspondent respectivement à `{r} round(indus_percent, 1)` %, `{r} round(artisanal_percent, 1)` %, `{r} round(subsistence_percent, 1)` % et `{r} round(recreational_percent, 1)` % du total. On ne conserve que les observations associées au secteur industriel. Les données finales contiennent `{r} nrow(catch)` observations décrivant les captures de `{r} n_taxa` taxons de `{r} min(catch$year)` à `{r} max(catch$year)`.
+
+Les évaluations des stocks d'espèces démersales et de petits poissons pélagiques sont récupérées à partir des rapports des groupes de travail du Comité des Pêches pour l'Atlantique Centre-Est (COPACE). Le COPACE a été créé en 1967, par la résolution 1/48 adoptée par le Conseil de la FAO lors de sa quarante-huitième session, en vertu de l'article VI (2) de l'Acte constitutif de la FAO. Il promeut l'utilisation durable des ressources marines vivantes grâce à une approche scientifique des cadres de gestion des pêches et des opérations de pêche dans l'ensemble de la zone FAO n°34. Les évaluations sont effectuées par sous-région, nord ou sud, délimitées par la frontière du nord de la Guinée-Bissau et le sud de l'Angola. Pour les stocks de grands poissons pélagiques (thonidés, voiliers, espadons, makaires et requins) on se réfère aux évaluation de la Commission Internationale pour la Conservation des Thonidés de l'Atlantique (CICTA, ICCAT en anglais; <https://www.iccat.int/en/assess.html>).
+
+On fait correspondre les captures reconstruites du SAU avec les évaluations officielles des stocks. Pour la correspondance spatiale avec les stocks identifiés par le COPACE, on attribue les captures du courant des Canaries à la sous-région nord, et celles du courant de Guinée à la sous-région sud. Cette approche est justifiée par le recouvrement entre les deux partitions des eaux côtières (@fig-map-lme-cecaf). Le COPACE identifie parfois plusieurs stocks de la même espèce dans une sous-région donnée. Dans ces cas, les stocks sont regroupés et considérés comme un seul, avec une évaluation unique. Si les stocks agrégés partagent la même évaluation, celle-ci est directement attribuée au stock regroupé. Dans le cas contraire, l’évaluation retenue est celle associée aux captures les plus importantes. Le terme « Principalement » est alors ajouté à l’évaluation pour signaler cette agrégation. Toute capture correspondant à au moins un niveau de surexploitation (Surpêche, Stock dégradé ou Surexploitation), que ces termes soient précédés ou non de « Principalement », est ensuite classée comme Surexploitation probable.
+
+## Propriété des navires
+
+### Identité des navires {#sec-identite-navires}
+
+Un navire est défini comme unité de flotte par sa coque. Un changement de nom, de pavillon, ou des modifications techniques n'altèrent pas l'identité du navire.
+
+L'identifiant associé aux données AIS est le numéro MMSI. Il est attribué par l'autorité maritime du pays d'immatriculation et unique en théorie. Cependant, il n'identifie pas la coque de façon unique, puisqu'un changement de pavillon entraîne la modification du numéro MMSI. De plus, le numéro MMSI peut en pratique être modifié par l'équipage, de façon volontaire ou par erreur. Enfin, il existe des cas dans lesquels plusieurs navires partagent le même identifiant MMSI. A l'inverse un identifiant unique de la coque appelé numéro IMO est attribué par l'Organisation Maritime Internationale (OMI, IMO en anglais) lors de l'enregistrement d'un navire. Enfin, GFW fait un effort important de regroupement des données AIS pour les associer autant que possible à des coques de navires. Un identifiant est associé aux traces AIS considérées comme appartenant à la même coque, appelé identifiant GFW. Dans le même temps, le croisement des informations sur l'identité contenues dans les messages avec de nombreux registres permet d'associer un numéro IMO à une partie des traces. L'ensemble de ces méthodes est appliqué de façon automatique avec des critères minimisant les faux positifs.
+
+**Attribution manuelle des numéro IMO**
+
+```{r}
+#| include: false
+
+n_imo <- effort_ds$clean_effort |> distinct(imo) |> nrow()
+n_id <- effort_ds$clean_effort |> distinct(vessel_id) |> nrow()
+```
+
+En conséquence, de nombreux identifiant GFW ne sont pas associés à des numéros IMO par GFW. Dans les données d'effort apparent, on dispose de `{r} n_imo` différents numéros IMO, soit une couverture de `{r} round(100 * n_imo / n_id, 1)` %.
+
+On met en place une méthode de collecte de données pour attribuer des numéros IMO aux identifiants GFW du jeu de données. La source principale d'informations est la base de données "*Ships and Company Particulars*" du *Global Integrated Shipping Information System* (GISIS), une plateforme de l'OMI. Elle rassemble les informations enregistrées auprès de l'OMI concernant l'identité des navires. Elle permet de faire le lien entre différents identifiants d'un navire, et notamment le numéro MMSI, le nom et le numéro IMO.
+
+Dans certains cas, la confiance dans l'attribution du numéro IMO peut être plus faible : soit la base du GISIS ne contient pas toujours d'informations sur le numéro MMSI, soit le numéro MMSI et/ou le nom ont changé suite à un repavillonnement et n'ont pas été mis à jour. En cas d’ambiguïté, on peut recourir à des recherches internet (Marine Traffic, Vessel Finder etc.) pour confirmer l'attribution. Un autre moyen, notamment pour confirmer un changement de nom, est de comparer les traces AIS sur le site de GFW. En effet, deux identifiants GFW différents mais dont les émissions AIS sont dans la même zone, et se suivent (i.e. l'un commence à émettre quand l'autre s'arrête) peuvent être associé au même navire (voir @sec-annexe-rimbal pour un exemple). On catégorise donc les associations entre identifiants GFW et numéros IMO par niveau de confiance (@tbl-ownership-summary).
+
+### Recherche des propriétaires ultimes
+
+On adapte une méthodologie déjà publiée pour l'obtention de données sur la propriété des navires [@kinds2025], identifiés par leurs numéros IMO.
+
+La principale source de données sur la propriété est la base de données Orbis, compilée et gérée par Bureau van Dijk. Les données sur la propriété sont collectées par l'intermédiaire du ministère du commerce d'un pays dans les juridictions où la divulgation de la propriété est obligatoire, ou auprès de fournisseurs de données associés, ou encore directement auprès des entreprises elles-mêmes. Les informations relatives à la propriété sont régulièrement mises à jour et soumises à un contrôle de qualité rigoureux. Les informations sur les navires sont mises à jour sur la base des informations fournies par IHS Markit (une filiale de S&P Global).
+
+Suivant Kinds et al., on extrait des données correspondant à deux niveaux hiérarchiques : l'actionnaire immédiat (ISH) et le propriétaire ultime mondial (GUO). En partant du navire, ORBIS procède à une identification ascendante des actionnaires et des propriétaires. L'ISH occupe la position la plus basse en tant que propriétaire direct du navire, et le GUO occupe la position la plus élevée. Conformément à la définition des actionnaires de contrôle selon les normes internationales d'information financière (IFRS), nous définissons le GUO avec un seuil de 50,01 % de participation à chaque niveau hiérarchique, correspondant à une participation minimale de 50,01 %.
+
+La base de données "Ship and Company Particulars" du GISIS renseigne également le nom et la nationalité de l'entreprise propriétaire du navire. Lors de la collecte de données d'identité, on récupère cette information pour l'ensemble des navires identifiés. Lorsqu'ORBIS ne fournit pas de résultat pour un numéro IMO, on utilise le propriétaire enregistré dans le GISIS comme ISH. Une recherche de GUO pour ces entreprises est effectuée dans ORBIS. En cas d'échec, on suppose que l'ISH et le GUO sont la même entité. Le diagramme de décision est résumé en @fig-decision-tree-ownership. On ajoute deux informations sur la propriété obtenues séparément : les ISH Atlantic Shrimpers Ltd (Nigéria) et HISEPEC (Sénégal) sont possédés respectivement par le néerlandais Cornelis Vrolijk et l'espagnol PEIRERA GROUP. Afin d'évaluer la qualité des données de propriété collectées, on propose trois niveaux de confiance, associés aux différentes sorties de l'arbre de décision du processus dont les critères sont détaillés dans la @tbl-ownership-summary.
+
+![Diagramme de décision pour la récupération des données de propriétés des navires, s'appuyant sur la base de données ORBIS et l'onglet 'Ship and Company Particulars' du portail GISIS.](figures/decision_tree_ownership.png){#fig-decision-tree-ownership fig-align="center" width="500"}
+
+## Impacts et responsabilité de la flotte de chalutiers
+
+On exploite les données fournies par GFW pour estimer trois mesures d'impact de la flotte industrielle de chalutiers : l'effort de pêche total, la pêche proche de la côte et l'abrasion des fonds marins (pour le chalut de fond). Les impacts sont agrégés par nationalité du GUO, faisant une hypothèse de stabilité du propriétaire ultime à cinq ans.
+
+### Effort total et effort en eaux territoriales
+
+@belhabib2020 ont passé en revue les législations nationales limitant l'accès aux territoriales pour tout ou partie des navires de pêche industrielle pour l'ensemble des pays côtiers du continent africain. En cas de législations complexes sur les catégories autorisées à pêcher, des zones minimales ont été retenues afin de ne pas surévaluer la pêche illégale. On récupère les zones d'exclusion pour les pays africains de la FAO 34.
+
+On télécharge des données d'effort de pêche apparent égales à celles décrites en @sec-gfw-data mais avec une résolution de 0.01°. Seul les navires identifiés par la méthode de @kroodsma2018 comme "Chaluts" (précision 0.98, rappel 0.94) sont conservés. Une jointure spatiale est effectuée avec un raster de distance à la côte. On peut alors calculer par nationalité du GUO l'effort total des chalutiers (kW.heures) et l'effort dans les eaux territoriales des pays côtiers. Ce dernier est séparé est aussi classé par niveau de restriction. On classe l'effort comme "Pêche INN" si les navires ont pêché dans une zone d'exclusion. Cela dépend du pavillon du navire. On définit par ailleurs l'effort à moins de 12 nm comme "Problématique" si la pêche est légale, mais ne le serait plus si le pavillon correspondait à la nationalité du GUO.
+
+### Abrasion des fonds marins
+
+A ce jour une limite majeure des données d'effort apparent de GFW est l'absence de distinction entre chalutage de fond et chalutage pélagique [@kroodsma2018]. Un nouveau classifieur a été développé par GFW, capable de différencier les évènements de chalutage pélagique et démersal (y compris pour un même navire). Le modèle montre de bonnes performances sur le jeu de test pour la classe "chalutage de fond", mais le chalutage pélagique est surestimé. GFW nous a donné accès aux données produites par le modèle avant leur publication. Etant donné les performances décrites, on n'exploite ces données que pour prédire le chalutage de fond. Le sous-ensemble utilisé couvre la zone FAO 34 avec une maille de côté 0.1° sur la période 2020-2023 avec une résolution mensuelle. Les observations sont similaires aux données d'effort apparent décrites en @sec-gfw-data. Les principales différences sont l'agrégation par MMSI (et non identifiant GFW) et un attribut donnant la distance chalutée par cellule.
+
+@eigaard2016 ont estimé des relations permettant de prédire la largeur de l'ouverture du filet des chaluts de fond sur la base d'un questionnaire auquel ont répondu des pêcheurs européens. Les modèles développés dépendent de catégories nommées métiers BENTHIS (combinant types d'engin et de cible). Selon le métier BENTHIS le modèle peut être linéaire ou exponentiel, et paramétré en fonction de la longueur totale (LOA) ou de la puissance maximal du moteur du navire. On ne dispose pas de suffisamment d'informations pour caractériser le métier des navires observés par AIS. Afin de pouvoir exploiter les modèles d'Eigaard et al., on fait l'hypothèse que la flotte industrielle de chalutiers de fond opérant en Afrique de l'Ouest est en grande majorité composée de chaluts à panneaux d'une part, et que les relations valides pour la flotte européenne peuvent être étendues à Afrique de l'Ouest. Puisqu'on ne peut connaître le type de cibles des chalutiers dans la région, on applique le modèle du métier BENTHIS OT_MIX (chalut à panneaux sans cible spécifique).
+
+$$
+{DS}_{O T_{-} M I X} = 10.6608 \times \mathrm{kW}^{0.2921}
+$$
+
+où $DS$ (door spread) est l'écart entre les panneaux. On en déduit alors la surface balayée par le chalutier $i$:
+
+$$
+S_{i} = d_{i} \times {DS}_{O T_{-} M I X}(kW_{i})
+$$
+
+où $d_{i}$ est la distance totale chalutée par par le chalutier $i$. On peut alors calculer le ratio entre la surface chalutée dans une cellule et la surface de la cellule :
+
+$$
+SAR_{c} = \frac{\sum_{i}{}{S_{i}}}{S_{c}}
+$$
+
+où $SAR_{c}$ (swept area ratio) est le ratio et $S_c$ est la surface de la cellule $c$. Enfin, pour évaluer l'empreinte spatiale du chalutage de fond, définie comme la surface chalutée au moins une fois par an, on utilise l'approche probabiliste recommandée par @amoroso2018a.
+
+$$
+Empreinte_{c,a} = 1 - e^{-SAR_{c,a}}
+$$
+
+pour la cellule $c$ et l'année $a$.
+
+Etant donnée les incertitudes associées à l'utilisation du modèle BENTHIS OT_MIX, on double l'analyse avec une largeur d'ouverture conservative fixée à 25 m pour l'ensemble des navires.
+
+# Résultats
+
+\FloatBarrier
+
+## Effort, capacité et captures de la flotte de pêche industrielle
+
+![Désagrégation de la capacité et de l'effort de pêche apparent GFW de la flotte de pêche visible par AIS en Atlantique Centre-Est sur la période 2020-2024. La colonne 'avec capacité' indique le nombre de navire pour lesquels GFW fournit des valeurs de LOA, GT et kW. \* Un navire peut être compté dans plusieurs catégories de zone de pêche ou d'origine du pavillon. Pour ces lignes les statistiques de capacité sont pondérées par le temps de pêche.](tables/tbl_capacity_summary.png){#tbl-capacity-summary width="16cm"}
+
+```{r}
+#| echo: false
+
+total_kWh = sum(effort_ds$clean_effort$kWh, na.rm = TRUE)
+
+dom_in_eez <- effort_ds$clean_effort |> 
+  filter(region_type_fr == "ZEE") |> 
+  summarize(
+    kWh_pct = round(100 * sum(kWh, na.rm = TRUE) / total_kWh, 1), 
+    hours_pct = round(100 * sum(apparent_fishing_hours, na.rm = TRUE) / effort_ds$total_fishing_time, 1),
+    .by = origin_type_fr
+  ) |> 
+  filter(origin_type_fr == "Domestique")
+
+waf_in_hs <- effort_ds$clean_effort |> 
+  filter(region_type_fr == "Haute mer") |> 
+  summarize(
+    kWh_pct = round(100 * sum(kWh, na.rm = TRUE) / total_kWh, 1), 
+    hours_pct = round(100 * sum(apparent_fishing_hours, na.rm = TRUE) / effort_ds$total_fishing_time, 1),
+    .by = origin_type_fr
+  ) |> 
+  filter(origin_type_fr == "Distante (pavillon ouest-africain)")
+
+n_flags <- length(unique(effort_ds$clean_effort$flag, na.rm = TRUE))
+
+in_eez_pct = effort_ds$clean_effort |>
+  summarize(
+    kWh_pct = sum(100 * kWh, na.rm = TRUE) / total_kWh, 
+    .by = eez_iso3c
+  ) |> 
+  filter(!is.na(eez_iso3c)) |> 
+  arrange(desc(kWh_pct))
+  
+top3_eez_pct <- round((in_eez_pct |> head(3) |> pull(kWh_pct) |> sum()), 1)
+top8_eez_pct <- round((in_eez_pct |> head(8) |> pull(kWh_pct) |> sum()), 1)
+
+mrt_pct <- round((in_eez_pct |> filter(eez_iso3c == "MRT") |> pull(kWh_pct)), 1)
+esh_pct <- round((in_eez_pct |> filter(eez_iso3c == "ESH") |> pull(kWh_pct)), 1)
+gnb_pct <- round((in_eez_pct |> filter(eez_iso3c == "GNB") |> pull(kWh_pct)), 1)
+
+dom_esh_pct <- effort_ds$clean_effort |>
+  summarize(
+    kWh = sum(kWh, na.rm = TRUE),
+    .by = c(eez_iso3c, origin_type_fr)
+  ) |> 
+  group_by(eez_iso3c) |> 
+  mutate(
+    total_kWh_eez = sum(kWh),
+    kWh_pct = round(100 * kWh / total_kWh_eez, 1)
+  ) |> 
+  filter(eez_iso3c == "ESH", origin_type_fr == "Domestique") |> 
+  pull(kWh_pct)
+
+# effort_ds$clean_effort |> 
+#   filter(flag_iso3c == "CMR") |> 
+#   distinct(mmsi, vessel_name, gear_type_fr, length_m_gfw, ish_name, ish_country_iso3)
+
+kWh_pct_top10_flags <- effort_ds$clean_effort |> 
+  summarize(
+    kWh_pct = 100 * sum(kWh, na.rm = TRUE) / total_kWh,
+    .by = flag_iso3c
+  ) |>
+  arrange(desc(kWh_pct)) |> 
+  head(10) |> 
+  pull(kWh_pct) |> 
+  sum() |> 
+  round(1)
+```
+
+La pêche industrielle visible par AIS en Atlantique Centre-Est est concentrée dans les ZEE des pays côtiers, qui reçoivent 87.4 % des kW.h apparents. Si la pêche domestique représente une part non négligeable de l'effort (34.6 %), les navires pavillonnés hors d'Afrique de l'Ouest dominent, avec 52.1 % des kW.h. La pêche pratiquée par des pays ouest-africains en dehors de leurs ZEE ne représente que 9.9 % des kW.h apparents. Elle est encore plus minoritaire en dehors des ZEE, où elle ne représente que `{r} waf_in_hs$kWh_pct` % des kW.h.
+
+La @fig-rgb-eez montre l'emprise spatiale de la flotte de pêche visible par AIS. L'effort s'étend dans la quasi-totalité de l'Atlantique Centre-Est, à l'exception de la région centrale du gyre atlantique nord, fortement improductive, et de la ZEE de l'île de l'Ascension (une aire marine protégée). Deux zones de très forte intensité sont identifiables visuellement : le plateau continental du Sahara occidental et de la Mauritanie d'une part, et celui de Guinée-Bissau d'autre part. En effet, l'effort est très inégalement distribué entre les ZEE. Huit d'entre elles (sur 31) concentrent `{r} top8_eez_pct` % des kW.h totaux (@fig-rgb-eez b.). Les trois ZEE les plus pêchées sont la Mauritanie (`{r} mrt_pct` % des kW.h), le Sahara occidental (`{r} esh_pct` %) et la Guinée-Bissau (`{r} gnb_pct` %). Parmi les ZEE subissant le plus d'effort, on en distingue dans lesquelles la pêche domestique domine (Nigéria, Sénégal, Maroc et Ghana). D'autres, comme la Mauritanie, la Guinée-Bissau et la Guinée sont dominée par les pavillons étrangers non ouest-africains. Le Sahara occidental se distingue avec un partage relativement égal de l'effort entre les navires domestiques marocains (`{r} dom_esh_pct` % des kW.h) et étrangers. Observer l'intensité spatiale de l'effort modifie peu le classement des ZEE (@fig-rgb-eez b.&c.). On note cependant la très forte intensité d'effort dans la petite ZEE du Cameroun, qui se place alors en 3^e^ position.
+
+1108 navires différents, identifiés par leurs numéros MMSI, ont pêché au moins 2000 heures dans la zone FAO n°34 entre le 1^er^ janvier 2020 et le 31 décembre 2024 (@tbl-capacity-summary). La capacité de pêche est concentrée proche des côtes, avec 95.5 % des MMSI pêchant au moins une fois dans les ZEE, contre seulement 43.6 % en dehors. Elle est dominée par les chalutiers (613 navires et 78.1 % des kW.h) et la catégorie "Lignes et hameçons" principalement composée de palangriers (236 navires et 11.9 % des kW.h). La contribution des 37 senneurs thoniers est plus limitée, avec 4.8 % des kW.h.
+
+![Distribution spatiale de l'effort de pêche apparent GFW (en kW.h) dans la zone FAO n°34 sur la période 2020-2024. La carte (a) montre l'effort spatialisé avec une maille carrée de 0.1°. La luminance est reflète la transformée logarithmique de l'effort total dans les cellules. La couleur reflète la composition de l'effort : jaune pour la pêche domestique ; bleu pour la pêche distante ouest-africaine ; rose pour la pêche distante non ouest-africaine. Les couleurs sont projetées dans le plan HCL pour assurer l'iso-luminance à effort total fixé. Une légende détaillée est proposée en Figure `\ref{fig-ternary-plots}`{=latex}. (b) donne la distribution de l'effort par ZEE et (c) donne l'intensité spatiale par ZEE.](figures/rgb_map_and_eez_effort.png){#fig-rgb-eez fig-align="center" width="16cm"}
+
+La capacité est inégalement répartie entre les `{r} n_flags` pavillons opérant dans la région. Les pavillons chinois et espagnols regroupent le plus de navires actifs, respectivement 242 et 126. On trouve également d'importantes nations de pêche ouest-africaines telles que le Maroc (116 navires), le Nigéria (95 navires), le Ghana (67 navires), ou le Sénégal (56 navires). Le Japon et Taïwan sont aussi très présents respectivement 59 et 46 navires. On distingue plusieurs pavillons dont les navires ont des caractéristiques exceptionnelles. Les 12 navires sous pavillon russe par exemple, sont des méga-chalutiers mesurant en moyenne 115.6 m. De même pour les chalutiers camerounais, dont un tiers mesurent une centaine de mètres.
+
+En conséquence la majorité de l'effort de pêche est fournie par un petit nombre de pavillons. Les 10 plus gros contributeurs dépensent `{r} kWh_pct_top10_flags` % des kW.h. En première position, le pavillon chinois représente 21.2 % des kW.h. On trouve ensuite le Maroc (13.4 %) et le Sénégal (8.6 %), confirmant leur rôle de nations de pêche industrielle régionale. La Russie est en 3^e^ position en termes de kW.h (8.4 %), bien que les navires russes pêchent relativement peu (1.2 % des heures de pêche). A l'inverse l'Espagne et le Nigéria comptabilisent chacun plus de 12 % des heures de pêche, mais leurs flottes sont majoritairement composées de chalutiers de 20 à 30 m moins puissants que les thoniers ou les méga-chalutiers, résultant en 6.8 % et 6.6 % des kW.h respectivement.
+
+![Régionalisation par pavillon de l'effort apparent GFW (en kW.h) de la flotte chalutiers opérant sur le plateau continental de la zone FAO n°34 sur la période 2020-2024. Les identifiants des neufs régions ainsi que les contributions relatives à l'effort des 5 plus gros contributeurs sont donnés par les histogrammes à droite.](figures/map_and_compo_clustering_trawlers.png){#fig-clustering-trawlers width="16cm"}
+
+Pour étudier la distribution de l'effort par flottille (i.e. groupe de même pavillon et engin), on observe d'abord que les chalutiers dominent presque entièrement l'effort quand la bathymétrie est inférieure à 1000 m, puis s'effacent rapidement (@fig-gear-bathy). L'analyse est donc effectuée séparément au-dessus et au-dessous de cette limite.
+
+Le clustering spatial du plateau océanique en fonction de l'effort relatif des flottilles montre de faibles performances. La largeur moyenne des silhouettes ne dépasse pas 0.3 pour l'ensemble des paramètres $(k, \alpha)$ testés (@fig-silhouettes), suggérant une faible structuration des données. L'effort est particulièrement concentré, et les 20 premières flottilles (essentiellement des senneurs et palangriers) fournissent plus de 95 % des kW.h. La visualisation de l'effort spatialisé des 6 premières (les palangriers taïwanais, japonais, chinois et espagnols, et les senneurs sénégalais et ghanéens) montre un certain partage de l'espace, avec des aires privilégiées qui se recouvrent, créant des frontières graduelles (@fig-maps-top6-openocean). Ceci explique l'échec de l'approche de clustering. A l'exception de la Mauritanie et du Cap-Vert, les ZEE des pays ouest-africains ne sont pas pêchées par les grandes flottilles thonières non ouest-africaines. A l'inverse, les senneurs sénégalais sont les principaux thoniers dans les ZEE du courant des Canaries. Les Ghanéens ont un rôle similaire plus au sud, mais fournissent aussi un effort non négligeable en haute mer à l'équateur.
+
+L'approche se concentrant sur les flottilles de chalutiers du plateau continental fait émerger une structure satisfaisante. Avec $\alpha = 0.5$ on obtient le meilleur clustering (largeur moyenne supérieure à 0.5) pour 9 classes (@fig-silhouettes). Les quatre régions les moins diversifiées (H' ≤ 0.37, J ≤ 0.15) correspondent à l'effort des pavillons ouest-africains majeurs (@tbl-clustering-trawlers) : la classe 1 correspond à la pêche domestique marocaine (94.4 % des kW.h) ; la classe 5 comprend le plateau sénégalais et l'extérieur du plateau libérien et est dominée par les chalutiers sénégalais (92.6 %) ; le Ghana a la mainmise sur les plateaux ghanéens et ivoiriens (96.4 % des kW.h de la classe 8) ; idem pour le Nigéria qui domine le plateau domestique et celui du Cameroun (92.3 % des kW.h de la classe 9). La régionalisation met en évidence un phénomène de "débordement" de l'effort des pavillons ouest-africains majeurs chez leurs voisins. A l'opposé, les deux zones les plus intenses en effort autour de la Mauritanie et de la Guinée-Bissau regroupent une plus grande diversité de pavillon, à dominante non ouest-africaine. La classe 2 (Mauritanie et Sahara occidental) est à la fois la plus diversifiée (H' = 2.23, J = 0.69) et la plus intensément pêchée. L'effort est dominé par les chalutiers russes, chinois, camerounais, marocains et européens. Le large plateau continental de la Guinée-Bissau et de la Guinée est divisé en plusieurs classes (4, 6 et 7). Les pavillons chinois y dominent, suivis des espagnols, mais on trouve un nombre important d'autres nations. On identifie donc deux profils de zones de pêche de type "free-for-all", fortement pêchées par de nombreux acteurs, principalement non ouest-africains. La classe 3 est plus difficile à interpréter et semble conditionnée par l'absence relative des nations de pêche majeures.
+
+L'image fournie par les captures reconstruites (@fig-catch) diffère remarquablement de celle de l'effort de pêche. On retrouve certes la position dominante du Maroc, du Sénégal, de la Russie ou de l'Espagne. D'autres nations de pêche majeures comme le Ghana ou le Japon sont identifiées. En revanche, on remarque que la Chine n'occupe que la 3^e^ position des captures (contre la 1^ère^ en effort). De même le Nigéria est en 16^e^ position (5^e^ en effort). Plusieurs pavillons asiatiques ou ouest-africains sont ici absents du haut du classement, laissant la place à des pavillons européens. Saint-Christophe-et-Niévès et Belize, deux paradis fiscaux caribéens et pavillons de complaisance, sont en bonne position. Les différences peuvent s'expliquer par des dynamiques récentes, comme l'augmentation de l'effort chinois ou le repavillonnement, ou un défaut de la reconstruction.
+
+![Captures reconstruites par le *Sea Around Us* et estimation du niveau de surexploitation le plus probable. Les captures sont moyennées sur la période 2015-2019 et agrégées : (a) par pavillon ; (b) par appartenance du pavillon à un état d'Afrique de l'Ouest. L'agrégation par pavillon ne montre que les 17 premiers pavillons en terme de captures, cumulant 87.6 % de celles-ci.](figures/overexploitation_summary.png){#fig-catch width="16cm"}
+
+```{r}
+#| include: false
+
+west_africa_flags <- c("MAR", "ESH", "MRT", "SEN", "GMB", "GNB",
+                       "GIN", "SLE", "LBR", "CPV", "CIV", "GHA",
+                       "TGO", "BEN", "NGA", "CMR", "STP", "GNQ",
+                       "GAB", "COD", "COG", "AGO")
+catch <- catch |> 
+  mutate(
+    fishing_entity = ifelse(fishing_entity == "Channel Isl. (UK)", "United Kingdom", fishing_entity),
+    flag_iso3c = countrycode(fishing_entity, origin = "country.name", destination = "iso3c"),
+    type = ifelse(flag_iso3c %in% west_africa_flags, "Pav. ouest-africains", "Autres")
+  )
+
+tonnes_per_y_waf <- round(sum(subset(catch, type == "Pav. ouest-africains")$tonnes, na.rm = TRUE) / 5e6, 1)
+tonnes_per_y_other <- round(sum(subset(catch, type == "Autres")$tonnes, na.rm = TRUE) / 5e6, 1)
+
+total_tonnes <- sum(catch$tonnes, na.rm = TRUE)
+tonnes_matchimp <- sum(subset(catch, overexploitation_flag == "Match impossible")$tonnes, na.rm = TRUE)
+pct_matchimp <- round(100 * tonnes_matchimp / total_tonnes, 1)
+total_matched <- total_tonnes - tonnes_matchimp
+pct_noeval <- round(100 * sum(subset(catch, overexploitation_flag == "Evaluations lacunaires")$tonnes, na.rm = TRUE) / total_matched, 1)
+pct_over <- round(100 * sum(subset(catch, overexploitation_flag == "Surexploitation probable")$tonnes, na.rm = TRUE) / total_matched, 1)
+
+data <- catch |> 
+  filter(overexploitation_flag != "Match impossible") |> 
+  summarize(
+    tonnes = sum(tonnes, na.rm = TRUE),
+    .by = c(type, overexploitation_flag)
+  ) |> 
+  group_by(type) |> 
+  mutate(tonnes_pct = round(100 * tonnes / sum(tonnes), 1))
+
+pct_noover_other <- data |> filter(type == "Autres", overexploitation_flag == "Non surexploitation probable") |> pull(tonnes_pct)
+
+overexp_data_by_flag <- catch |> 
+  filter(overexploitation_flag != "Match impossible") |> 
+  summarize(
+    tonnes = sum(tonnes, na.rm = TRUE),
+    .by = c(flag_iso3c, type, overexploitation_flag)
+  ) |> 
+  group_by(flag_iso3c) |> 
+  mutate(tonnes_flag_tot = sum(tonnes)) |> 
+  ungroup() |> 
+  mutate(tonnes_pct_in_flag = 100 * tonnes / tonnes_flag_tot) |> 
+  filter(type == "Autres", overexploitation_flag == "Non surexploitation probable")
+```
+
+Les captures ouest-africaines s'élèvent à `{r} tonnes_per_y_waf` millions de tonnes par an en moyenne, comparables aux `{r} tonnes_per_y_other` millions de tonnes estimées pour les pavillons non ouest-africains. Pour une large part des captures reconstruites (`{r} pct_matchimp` %) on ne peut pas estimer le niveau d'exploitation car la résolution taxonomique de la reconstruction est trop grossières. Parmi les captures restantes (nommées ensuite "captures associées"), `{r} pct_noeval` % proviennent de stocks non évalués par les groupes d'experts régionaux et `{r} pct_over` % de stocks surexploités. Seulement `{r} pct_noover_other` % des captures associées des pavillons non-africains proviennent probablement de stocks non surexploités. Cette proportion varie parmi les grand pavillons de pêche distante, mais dépasse rarement 50 % : 14.8 % pour la Chine, 28.5 % pour la Russie, 40.5 % pour l'Espagne. Ces faibles proportions posent problème étant donné que la pêche distante n'est autorisée par le droit internationale que pour capturer le surplus des états côtiers.
+
+## Propriété des navires
+
+```{r}
+#| echo: false
+
+# Ownership data - low confidence IMOs are removed
+ownership <- effort_ds$clean_effort |> 
+  filter(imo_confidence_code != 4) |> 
+  distinct(flag_iso3c, assigned_imo, ish_name, ish_country_iso3, guo_name, guo_country_iso3, is_european_guo)
+
+# General figures
+n_imo <- ownership |>  distinct(assigned_imo) |> nrow()
+
+n_ish <- effort_ds$clean_effort |> distinct(ish_name) |> nrow()
+n_ish_countries <- effort_ds$clean_effort |> distinct(ish_country_iso3) |> nrow()
+n_guo <- effort_ds$clean_effort |> distinct(guo_name) |> nrow()
+n_guo_countries <- effort_ds$clean_effort |> distinct(guo_country_iso3) |> nrow()
+
+# Ownership data for vessels with flag != GUO country
+change <- ownership |>
+  filter(!is.na(flag_iso3c), !is.na(guo_country_iso3),
+         flag_iso3c != guo_country_iso3)
+
+# Filter out flags with less than 1 % of effort (not included in the figure)
+flags_w_1pct <- effort_ds$clean_effort |> 
+  summarize(
+    kWh_pct = 100 * sum(kWh, na.rm = TRUE) / effort_ds$total_fishing_time,
+    .by = flag_iso3c
+  ) |>
+  filter(kWh_pct >= 1) |> 
+  pull(flag_iso3c)
+
+change_w_1pct <- change |> filter(flag_iso3c %in% flags_w_1pct) # Filter doesn't change a thing, probably bc. of how ownership data was obtained
+
+# Compute the number of vessels (IMO numbers) in the figure
+n_fig <- change_w_1pct |> pull(assigned_imo) |> length()
+n_distinct_fig <- change_w_1pct |> pull(assigned_imo) |> unique() |> length() # The number of different IMOs, since some can be counted twice when changing flags
+n_fig_duplicated <- change_w_1pct |> count(assigned_imo) |> filter(n > 1) |> pull(assigned_imo) |> length()
+
+# Compute stats on vessels with flag != GUO country (not just those on the figure)
+# All vessels
+n_chg <- change |> pull(assigned_imo) |> length()
+n_distinct_chg <-  change |> pull(assigned_imo) |> unique() |> length()
+distinct_chg_pct <- round(100 * n_distinct_chg / n_imo, 1)
+
+# West african vessels
+n_distinct_waf <- ownership |> filter(flag_iso3c %in% west_africa_flags) |> distinct(assigned_imo) |> nrow()
+n_distinct_waf_chg <- change |> filter(flag_iso3c %in% west_africa_flags) |> distinct(assigned_imo) |> nrow()
+distinct_waf_chg_pct <- round(100 * n_distinct_waf_chg / n_distinct_waf, 1)
+
+# Role of the EU
+n_distinct_waf_chg_to_eu <- change |> filter(flag_iso3c %in% west_africa_flags, is_european_guo) |> distinct(assigned_imo) |> nrow()
+distinct_waf_chg_to_eu_pct <- round(100 * n_distinct_waf_chg_to_eu / n_distinct_waf, 1)
+distinct_waf_chg_to_eu_pct_of_chg <- round(100 * n_distinct_waf_chg_to_eu / n_distinct_waf_chg, 1)
+
+# Specific cases
+chg_nga_to_nld <- change |> filter(flag_iso3c == "NGA", guo_country_iso3 == "NLD")
+chg_sen_to_esp <- change |> filter(flag_iso3c == "SEN", guo_country_iso3 == "ESP")
+
+# Investigate assigned IMOs with multiple MMIs
+multiple_by_imo <- effort_ds$clean_effort |> 
+  summarize(
+    n = n_distinct(mmsi, na.rm = TRUE),
+    .by = assigned_imo
+  ) |> 
+  filter(!is.na(assigned_imo), n > 1)
+n_mmsis_regrouped <- sum(multiple_by_imo$n)
+
+multiple_by_mmsi <- effort_ds$clean_effort |> 
+  distinct(mmsi, assigned_imo) |> 
+  summarize(
+    n = n_distinct(assigned_imo, na.rm = TRUE),
+    n_na = sum(is.na(assigned_imo)),
+    .by = mmsi
+  ) |> 
+  filter(n + n_na > 1)
+```
+
+On attribue de façon non ambiguë `{r} n_imo` numéros IMO à 957 identifiants GFW (@tbl-imo-summary). Ceci permet de regrouper `{r} n_mmsis_regrouped` numéros MMSI utilisés par le même navire par groupe de 2 ou 3. Ces cas sont liés à des changements de pavillon ou des erreurs. Plus de 65 % des numéros MMSI pêchant plus 2000 heures sont associés au moins une fois à un numéro IMO. Puisque l'attribution est faite par identifiant GFW, elle ne concerne parfois qu'une part des observations de pêche d'un numéro MMSI. On dispose cependant de numéros IMO pour l'essentiel des heures de pêche apparentes (80 %). On identifie ensuite les entités propriétaires de ces navires avec un haut niveau de confiance pour 65.7 % d'entre eux. Les niveaux de confiance moyen et bas représentent respectivement 22.1 % et 7.2 % des numéros IMO, et seulement 5 % des numéro IMO n'ont aucun propriétaire attribué. A l'échelle de la flotte entière, on attribue des propriétaires à 72 % des heures de pêche apparentes avec un niveau de confiance élevé à moyen. Le niveau de confiance bas correspond à 4.9 % des heures. Les `{r} n_imo` navires identifiés par leurs numéros IMO appartiennent à `{r} n_ish` actionnaires immédiats enregistrés dans `{r} n_ish_countries` états, eux-même possédés par `{r} n_guo` enregistrés dans `{r} n_guo_countries` états.
+
+On s'intéresse aux navires pour lesquels la nationalité du pavillon est différente de la nationalité du propriétaire ultime. De tels cas indiquent le navire est principalement contrôlé par des capitaux étrangers. `{r} distinct_chg_pct` % des navires sont concernés. Les flottes ouest-africaines sont les plus touchées par ce phénomène, avec `{r} distinct_waf_chg_pct` % des navires. Ainsi, 81 % des navires nigérians appartiennent au néerlandais Cornelis Vrolijk et 64 % des 56 navires sénégalais sont possédés par des entreprises étrangères, pour l'essentiel espagnoles (24 navires) telles que PEREIRA GROUP (10 navires). Au Cameroun et en Guinée-Bissau, les intérêts étrangers contrôlent respectivement 79 % et 65 % des navires (@fig-alluvial). A l'exception du Nigéria et du Sénégal, les états auxquels appartiennent les propriétaires ultimes sont souvent multiples pour un pavillon donné. L'influence des entreprises de l'Union Européenne est cependant majeure : `{r} distinct_waf_chg_to_eu_pct` % des navires ouest-africains sont possédés par des GUO de l'UE, soit `{r} distinct_waf_chg_to_eu_pct_of_chg` % des navires ouest-africains pour lesquels le pays d'enregistrement du GUO diffère du pavillon.
+
+![Distribution de la capacité de pêche en fonction du niveau de confiance dans l'attribution du propriétaire ultime (GUO). Un numéro MMSI peut-être compté dans toutes les catégories à la fois puisque l'attribution est faite au niveau de l'identifiant GFW. Les 6 numéros IMO compté comme 'non identifiés' sont exclus des analyses car leur attribution est ambigüe.](tables/tbl_ownership_summary.png){#tbl-ownership-summary width="16cm"}
+
+![Alluvial plot montrant le changement entre le pavillon et le pays d'enregistrement du propriétaire ultime (GUO). Seuls les navires affectés par un tel changement sont inclus dans la figure. `{r} n_distinct_fig` navires sont représentés. `{r} n_fig_duplicated` d'entre eux ont changé de pavillon entre 2020 et 2024 et sont comptés plusieurs fois, d'où n = `{r} n_fig` en ordonnée. Les chiffres entre parenthèses indiquent, pour chaque pavillon, le pourcentage de navires pour lesquels la nationalité du GUO est différente du pavillon. Les pays sur la gauche sont triés par nombre de navires avec nationalité du GUO différente du pavillon. Seuls les pays contribuant à plus d'1 % de l'effort en kW.h sont affichés. Les pays sur la droite sont triés par ordre alphabétique en deux groupes : pays de l'UE ou non. Seuls les noms des pays pour lesquels les GUO possèdent plus de 3 navires issus de la gauche sont affichés.](figures/alluvial_plot_flag_guo.png){#fig-alluvial width="16cm"}
+
+![Diagramme en miroir montrant le changement de distribution de l'effort de pêche apparent par pays selon que l'on considère le pavillon ou l'état d'enregistrement du propriétaire ultime (GUO).](figures/effort_flag_vs_guo.png){#fig-effort-flag-guo width="16cm"}
+
+```{r}
+#| echo: false
+
+# Compute change in a country's effort when switching from 
+chg_pct <- function(iso3c_list, effort = effort_ds$clean_effort){
+  kWh_flag <- effort |> filter(flag_iso3c %in% iso3c_list) |> pull(kWh) |> sum(na.rm = TRUE)
+  kWh_guo <- effort |> filter(guo_country_iso3 %in% iso3c_list) |> pull(kWh) |> sum(na.rm = TRUE)
+  return(round(100 * (kWh_guo - kWh_flag) / kWh_flag, 1))
+}
+
+# effort_ds$clean_effort |> 
+#   filter(flag_iso3c == "CMR") |> 
+#   distinct(
+#     vessel_name, assigned_imo, ish_name, ish_country_iso3, guo_name, guo_country_iso3
+#   ) |> 
+#   View()
+
+# Compute coverage of ownership analysis on China's vessels (mmsi's)
+n_mmsi_chn <- effort_ds$clean_effort |> filter(flag_iso3c == "CHN") |> distinct(mmsi) |> nrow()
+n_mmsi_chn_w_guo <- effort_ds$clean_effort |> filter(flag_iso3c == "CHN", !is.na(guo_name)) |> distinct(mmsi) |> nrow()
+n_mmsi_chn_w_guo_pct <- round(100 * n_mmsi_chn_w_guo / n_mmsi_chn, 1)
+
+# Same the general population
+n_mmsi <- effort_ds$clean_effort |> distinct(mmsi) |> nrow()
+n_mmsi_w_guo <- effort_ds$clean_effort |> filter(!is.na(guo_name)) |> distinct(mmsi) |> nrow()
+n_mmsi_w_guo_pct <- round(100 * n_mmsi_w_guo / n_mmsi, 1)
+
+# Re-evaluate distant effort based on GUO nationality
+total_kWh <- sum(effort_ds$clean_effort$kWh, na.rm = TRUE)
+kWh_nowaf_guo <- effort_ds$clean_effort |> filter(!(guo_country_iso3 %in% west_africa_flags)) |> pull(kWh) |> sum(na.rm = TRUE)
+kWh_nowaf_guo_per_y <- formatC(kWh_nowaf_guo / 5, format = "e", digits = 2)
+kWh_nowaf_guo_pct <- round(100 * kWh_nowaf_guo / total_kWh, 1)
+
+# Re-evaluate EU effort
+kWh_eu_guo <- effort_ds$clean_effort |> 
+  filter(is_european_guo) |> 
+  pull(kWh) |> sum(na.rm = TRUE)
+kWh_eu_guo_pct <- round(100 * kWh_eu_guo / total_kWh, 1)
+```
+
+En conséquence, agréger l'effort par nationalité du GUO modifie le classement des nations de pêche (@fig-effort-flag-guo). L'effort fournit (en kW.h) diminue pour l'ensemble des pays d'Afrique de l'Ouest, de `{r} -chg_pct(west_africa_flags)` % en moyenne. La différence est particulièrement importante pour le Sénégal (`{r} -chg_pct(c("SEN"))` %), la Guinée-Bissau (`{r} -chg_pct(c("GNB"))` %) et le Cameroun (`{r} -chg_pct(c("CMR"))` %). La perte de 100 % des kW.h du Cameroun, alors que tous les navires sous pavillon étrangers n'appartiennent pas à un GUO étranger est paradoxale, mais s'explique par l'absence d'information sur la propriété des 3 navires restant. La Chine conserve la première position malgré une diminution de `{r} -chg_pct(c("CHN"))` %. Cette diminution est due aux moindres performances de l'analyse de propriété pour les navires chinois. En effet, on n'identifie un GUO pour seulement `{r} n_mmsi_chn_w_guo_pct` % des MMSI chinois contre `{r} n_mmsi_w_guo_pct` % dans la population totale. L’Espagne (+ `{r} chg_pct(c("ESP"))` %) et les Pays-Bas (+ `{r} chg_pct(c("NLD"))` %), principaux propriétaires étrangers de capacité sous pavillons ouest-africains, atteignent la 2e et la 3e place respectivement. Si on utilise le pays d'enregistrement du GUO en lieu et place du pavillon, on peut réévaluer la pêche "distante" non ouest-africaine à `{r} kWh_nowaf_guo_per_y` kW.h.an^-1^. Elle domine alors complètement l'effort de la région, représentant `{r} kWh_nowaf_guo_pct` % des kW.h. La pêche sous capitaux européens représente quant à elle `{r} kWh_eu_guo_pct` % des kWh dépensés.
+
+## Impacts et responsabilité de la flotte de chalutiers
+
+### Effort et propriété
+
+```{r}
+#| echo: false
+
+n_flags <- effort_ds$clean_effort |> distinct(flag_iso3c) |>  nrow()
+n_flags_trawlers <- effort_ds$clean_effort |> filter(gear_type == "Trawls") |> distinct(flag_iso3c) |>  nrow()
+
+kWh_eez <- effort_ds$clean_effort |> 
+  filter(region_type == "EEZ") |>
+  pull(kWh) |> sum(na.rm = TRUE)
+kWh_trawlers_eez <- effort_ds$clean_effort |>
+  filter(region_type == "EEZ", gear_type == "Trawls") |> 
+  pull(kWh) |> sum(na.rm = TRUE)
+kWh_trawlers_eez_pct <- round(100 * kWh_trawlers_eez / kWh_eez, 1)
+
+kWh_cont <- effort_ds$clean_effort |> 
+  filter(bathymetry_m >= -1000) |>
+  pull(kWh) |> sum(na.rm = TRUE)
+kWh_trawlers_cont <- effort_ds$clean_effort |>
+  filter(bathymetry_m >= -1000, gear_type == "Trawls") |> 
+  pull(kWh) |> sum(na.rm = TRUE)
+kWh_trawlers_cont_pct <- round(100 * kWh_trawlers_cont / kWh_cont, 1)
+
+summary_trawlers_by_flag <- effort_ds$clean_effort |> 
+  filter(gear_type == "Trawls") |> 
+  summarize(
+    n_mmsis = n_distinct(mmsi, na.rm = TRUE),
+    n_imos = n_distinct(assigned_imo, na.rm = TRUE),
+    kWh = sum(kWh, na.rm = TRUE),
+    .by = flag_iso3c
+  ) |>
+  arrange(desc(n_mmsis)) |> 
+  mutate(
+    mmsis_pct = round(100 * n_mmsis / sum(n_mmsi), 1),
+    mmsis_pct_cumulated = cumsum(mmsis_pct),
+    kWh_pct = round(100 * kWh / sum(kWh), 1)
+    )
+
+n_mmsi_trawlers <- effort_ds$clean_effort |> 
+  filter(gear_type == "Trawls") |>
+  distinct(mmsi) |>  nrow()
+```
+
+```{r}
+#| echo: false
+
+trawlers_guo_summary <- effort_ds$clean_effort |> 
+  filter(gear_type == "Trawls") |>
+  summarize(
+    n_mmsis = n_distinct(mmsi, na.rm = TRUE),
+    n_vessel_ids = n_distinct(vessel_id, na.rm = TRUE),
+    hours = sum(apparent_fishing_hours),
+    kWh = sum(kWh, na.rm = TRUE),
+    .by = total_confidence
+  ) |> 
+  mutate(
+    vessel_ids_pct = 100 * n_vessel_ids / sum(n_vessel_ids),
+    hours_pct = 100 * hours / sum(hours),
+    kWh_pct = 100 * kWh / sum(kWh),
+  )
+
+w_guo_vessel_ids <- trawlers_guo_summary |> 
+  filter(!is.na(total_confidence)) |> 
+  pull(n_vessel_ids) |> 
+  sum()
+
+w_guo_vessel_ids_pct <- trawlers_guo_summary |> 
+  filter(!is.na(total_confidence)) |> 
+  pull(vessel_ids_pct) |> 
+  sum() |> 
+  round(1)
+
+w_guo_kWh_pct <- trawlers_guo_summary |> 
+  filter(!is.na(total_confidence)) |> 
+  pull(hours_pct) |> 
+  sum() |> 
+  round(1)
+
+good_kWh_pct <- trawlers_guo_summary |> 
+  filter(total_confidence >= 2) |> 
+  pull(hours_pct) |> 
+  sum() |> 
+  round(1)
+```
+
+La flotte de chalutiers rassemble `{r} n_mmsi_trawlers` navires (identifiés par leur numéro MMSI) fournissant un effort annuel d'1.2 milliards de kW.h, soit l'essentiel de l'effort de pêche apparent ( @tbl-capacity-summary). Cet effort est concentré sur le plateau continental, dans les ZEE. Ainsi l'effort des chalutiers représente `{r} kWh_trawlers_eez_pct` % du total dans les ZEE et `{r} kWh_trawlers_cont_pct` % sur le plateau continental (approximé par une bathymétrie de 0 à 1000 m). Les majorité des chalutiers battent pavillons chinois (11.1 % des MMSI), marocain (8.9 %), nigérian (8.3 %), sénégalais (4.2 %) et espagnol (3.1 %). On trouve également des chalutiers bissauguinéens, camerounais et ghanéens (17 navires de chaque). Enfin, les 11 méga-chalutiers russes fournissent 10.7 % des kW.h mesurés. On attribue un GUO à `{r} w_guo_vessel_ids` identifiants GFW de chalutiers (`{r} w_guo_vessel_ids_pct` % du total) totalisant `{r} w_guo_kWh_pct` % de l'effort des chalutiers en kW.h. Pour `{r} good_kWh_pct` % de celui-ci, l'attribution du GUO est faite avec un niveau de confiance moyen à élevé.
+
+```{r}
+#| echo: false
+
+n_mmsis_bottom <- bottom_ds$clean_effort |> distinct(mmsi) |> nrow()
+kWh_bottom <- bottom_ds$clean_effort |> pull(kWh) |> sum(na.rm = TRUE)
+GkWh_per_y_bottom <- round(kWh_bottom / (4*1e9), 1)
+
+# Compare bottom trawling MMSIs to general trawling MMSIs
+mmsis_bottom <- bottom_ds$clean_effort |> distinct(mmsi) |> pull()
+bottom_in_general <- effort_ds$clean_effort |> 
+  distinct(mmsi, gear_type_fr) |> 
+  filter(mmsi %in% mmsis_bottom)
+n_as_trawl <- bottom_in_general |> filter(gear_type_fr == "Chaluts") |> nrow()
+n_as_unknown <- bottom_in_general |> filter(gear_type_fr == "Inconnus") |> nrow()
+
+bottom_guo_summary <- bottom_ds$clean_effort |> 
+  mutate(has_guo = !is.na(guo_name)) |> 
+  summarize(
+    n_mmsis = n_distinct(mmsi, na.rm = TRUE),
+    hours = sum(apparent_fishing_hours),
+    kWh = sum(kWh, na.rm = TRUE),
+    .by = has_guo
+  ) |> 
+  mutate(
+    mmsis_pct = 100 * n_mmsis / sum(n_mmsis),
+    hours_pct = 100 * hours / sum(hours),
+    kWh_pct = 100 * kWh / sum(kWh)
+  ) |> 
+  filter(has_guo)
+
+w_guo_mmsis_pct <- round(bottom_guo_summary$mmsis_pct, 1)
+w_guo_kWh_pct <- round(bottom_guo_summary$kWh_pct, 1)
+```
+
+La flotte de chalutiers pratiquant le chalutage de fond est composée de `{r} n_mmsis_bottom` numéros MMSI, totalisant `{r} GkWh_per_y_bottom` milliards de kW.h par an. La totalité des numéros MMSI du jeu de données de chalutage de fond sont présents dans le jeu d'effort général. `{r} n_as_trawl` y sont identifiés comme des chalutiers, et pour `{r} n_as_unknown` le type d'engin est inconnu. On peut donc traiter ce jeu de données comme un sous-ensemble de la flotte de chalutiers générale. On attribue un GUO à `{r} w_guo_mmsis_pct` % des numéros MMSI, soit `{r} w_guo_kWh_pct` % des kW.h dépensés en chalutage de fond. La jointure avec les données de propriété étant faite par MMSI pour ce jeu de données, on ne dispose pas d'information sur le niveau de confiance dans l'attribution, qui dépend de l'identifiant GFW.
+
+### Abrasion des fonds marins
+
+```{r}
+#| echo: false
+
+library(tidyr)
+
+footprint <- bottom_ds$clean_effort |> 
+  mutate(
+    SA_min_km2 = gear_width_minimal_m * 1e-3 * distance_trawled_km,
+    SA_OT_MIX_km2 = gear_width_m * 1e-3 * distance_trawled_km
+  ) |> 
+  summarize(
+    SA_min_km2 = sum(SA_min_km2),
+    SA_OT_MIX_km2 = sum(SA_OT_MIX_km2),
+    .by = c(lat, lon, year, cell_area_km2, bathymetry_m)
+  ) |> 
+  mutate(
+    SAR_min = SA_min_km2 / cell_area_km2,
+    SAR_OT_MIX = SA_OT_MIX_km2 / cell_area_km2,
+    cell_annual_footprint_min =  1 - exp(-SAR_min),
+    cell_annual_footprint_OT_MIX =  1 - exp(-SAR_OT_MIX)
+  ) |> 
+  summarize(
+    SA_min_km2 = mean(SA_min_km2, na.rm = TRUE),
+    SA_OT_MIX_km2 = mean(SA_OT_MIX_km2, na.rm = TRUE),
+    SAR_min = mean(SAR_min, na.rm = TRUE),
+    SAR_OT_MIX = mean(SAR_OT_MIX),
+    cell_annual_footprint_min = mean(cell_annual_footprint_min, na.rm = TRUE),
+    cell_annual_footprint_OT_MIX = mean(cell_annual_footprint_OT_MIX, na.rm = TRUE),
+    .by = c(lat, lon)
+  )
+
+footprint <- bottom_ds$shelf_grid |> 
+  left_join(footprint,
+            by = c("lat", "lon")) |> 
+  mutate(
+    across(contains("min"), ~ replace_na(.x, 0)),
+    across(contains("OT_MIX"), ~ replace_na(.x, 0))
+    )
+
+summarize_footprint <- function(data) {
+  data |> 
+    summarize(
+      total_SA_min_km2       = sum(SA_min_km2, na.rm = TRUE),
+      total_SA_OT_MIX_km2    = sum(SA_OT_MIX_km2, na.rm = TRUE),
+      mean_SAR_min           = weighted.mean(SAR_min, cell_area_km2, na.rm = TRUE),
+      mean_SAR_OT_MIX        = weighted.mean(SAR_OT_MIX, cell_area_km2, na.rm = TRUE),
+      mean_footprint_min     = weighted.mean(cell_annual_footprint_min, cell_area_km2, na.rm = TRUE),
+      mean_footprint_OT_MIX  = weighted.mean(cell_annual_footprint_OT_MIX, cell_area_km2, na.rm = TRUE),
+      
+      prop_area_footprint_min_0_9  = sum(cell_area_km2[cell_annual_footprint_min > 0.9], na.rm = TRUE) / sum(cell_area_km2, na.rm = TRUE),
+      prop_area_footprint_OT_MIX_0_9  = sum(cell_area_km2[cell_annual_footprint_OT_MIX > 0.9], na.rm = TRUE) / sum(cell_area_km2, na.rm = TRUE),
+      .groups = "drop"
+    )
+}
+
+# Summaries of the footprints by bathymetry bins or EEZ
+fp_summary_cont <- footprint |> 
+  summarize_footprint()
+  
+fp_summary_bathy <- footprint |> 
+  mutate(
+    bathy_bin = cut(
+      -bathymetry_m,
+      breaks = c(0, 200, 1000),
+      include.lowest = TRUE,
+      right = FALSE
+  )) |> 
+  group_by(bathy_bin) |> 
+  summarize_footprint()
+
+fp_summary_eez <- footprint |> 
+  group_by(eez_iso3c) |> 
+  summarize_footprint()
+
+# Prop of shelf area with footprint >= 0.9
+area_cont <- footprint |> 
+  pull(cell_area_km2) |> 
+  sum()
+area_cont_09_min <- footprint |> 
+  filter(cell_annual_footprint_min >= 0.9) |> 
+  pull(cell_area_km2) |> 
+  sum()
+area_cont_09_OT_MIX <- footprint |> 
+  filter(cell_annual_footprint_OT_MIX >= 0.9) |> 
+  pull(cell_area_km2) |> 
+  sum()
+
+prop_area_09_min <- area_cont_09_min / area_cont
+prop_area_09_OT_MIX <- area_cont_09_OT_MIX / area_cont
+```
+
+![Empreinte spatiale annuelle moyenne du chalutage de fond apparent par AIS en Atlantique Centre-Est. La couleur indique la proportion de la surface d'une cellule chalutée au moins une fois par an entre 2020 et 2023. La distance entre les panneaux utilisée est : (a) fixée à 25 m pour tous les chalutiers ; (b) estimée avec le modèle BENTHIS OT_MIX [@eigaard2016].](figures/map_bottom_footprint.png){#fig-bottom-footprint fig-align="center" width="16cm"}
+
+L'approche prudente (ouverture du chalut fixée à 25 m) de l'estimation de la surface balayée par les chaluts donne un total 204385 km^2^.an^-1^, soit un ratio de surface balayée (SAR) moyen de 0.31 pour le plateau continental. La surface balayée au moins une fois par an représente 13.4 % du plateau continental de la zone FAO n°34. Avec l'approche prenant en compte les différences de taille d'ouverture entre navires, on estime que 21.2 % du plateau continental est chaluté au moins une fois par an.
+
+Le plateau sénégalais est le plus intensément chaluté avec les deux méthodes (@fig-bottom-footprint). Le SAR moyen est estimé à au moins 83.3 % (237 % avec l'approche BENTHIS), avec pour résultat une empreinte d'au moins 37 % (60 % avec l'approche BENTHIS). L'empreinte spatiale annuelle dépasse 20 % en Guinée-Bissau, en Gambie, au Cameroun, au Nigéria et en Mauritanie, et 10 % en Guinée, au Ghana, au Sahara occidental et au Maroc (approche conservative).
+
+La comparaison avec la @fig-clustering-trawlers met en évidence le rôle prépondérant des flottes sénégalaise (au Sénégal), espagnole et chinoise (en Guinée-Bissau et en Gambie), nigériane (au Nigéria et au Cameroun), marocaine (au Maroc et au Sahara occidental) et ghanéenne au Ghana.
+
+### Pêche dans les eaux territoriales
+
+```{r}
+#| echo: false
+
+inshore <- inshore_ds |> 
+  mutate(
+    inshore_fishing_flag = case_when(
+      inn_fishing ~ "INN",
+      would_be_inn ~ "Problématique",
+      in_12nm ~ "Autre",
+      TRUE ~ "> 12 nm"
+    ),
+    inshore_fishing_flag = factor(inshore_fishing_flag, levels = c("> 12 nm", "Autre", "Problématique", "INN")),
+    has_info = !is.na(engine_power_kw_gfw)
+  )
+
+summarize_inshore <- function(inshore) {
+  
+  n_years <- max(inshore$year) - min(inshore$year) + 1
+  grouping <- group_vars(inshore)
+  
+  inshore |> 
+    group_by(across(all_of(grouping)), inshore_fishing_flag) |>
+    summarize(
+      kWh_per_y = sum(kWh, na.rm = TRUE) / n_years,
+      hours_per_y = sum(apparent_fishing_hours) / n_years,
+      .groups = "drop_last"
+    ) |> 
+    mutate(
+      total_kWh_per_y = sum(kWh_per_y),
+      kWh_pct = ifelse(total_kWh_per_y == 0, 0, 100 * kWh_per_y / total_kWh_per_y),
+      total_hours_per_y = sum(hours_per_y),
+      hours_pct = ifelse(total_hours_per_y == 0, 0, 100 * hours_per_y / total_hours_per_y)
+    ) |> 
+    ungroup()
+  
+}
+
+summary_inshore_all <- inshore |> summarize_inshore()
+summary_inshore_by_flag <- inshore |> group_by(flag_iso3c) |> summarize_inshore()
+summary_inshore_by_eez <- inshore |> group_by(eez_iso3c) |> summarize_inshore()
+
+in12nm_by_eez <- summary_inshore_by_eez |> 
+  filter(inshore_fishing_flag != "> 12 nm") |> 
+  summarize(
+    kWh_per_y = sum(kWh_per_y),
+    total_kWh_per_y = first(total_kWh_per_y),
+    kWh_pct = sum(kWh_pct),
+    .by = eez_iso3c
+  )
+
+inn_by_eez <- summary_inshore_by_eez |> filter(inshore_fishing_flag == "INN")
+
+summary_has_info <- inshore |> group_by(has_info) |> summarize_inshore()
+
+corr <- cor(log(in12nm_by_eez$kWh_per_y), log(in12nm_by_eez$total_kWh_per_y),
+                   method = "pearson")
+corr <- round(corr, 2)
+
+#plot(in12nm_by_eez$total_kWh_per_y, in12nm_by_eez$kWh_per_y)
+#plot(log1p(in12nm_by_eez$total_kWh_per_y), in12nm_by_eez$kWh_pct)
+```
+
+La pêche dans les eaux territoriales des pays côtiers de l'Atlantique Centre-Est représente 26.7 % du temps et 15 % des kW.h dépensés dans les ZEE par la flotte de chalutiers (pélagiques ou démersaux) visible par AIS. En prenant en compte les zones de restrictions établies par certains pays, on estime que la pêche INN est de l'ordre de 2 % de l'effort apparent (2.2 % des heures et 1.5 % des kW.h).
+
+L'effort (en kW.h) des chalutiers à moins de 12 nm des côtes dépend de l'effort total dans la ZEE de façon log-linéaire (corrélation de Pearson `{r} corr`). Plus une ZEE subit d'effort de pêche, plus il y a de pêche dans les eaux territoriale. En revanche, la proportion de l'effort effectué à moins de 12 nm ne semble pas dépendre de l'effort total dans la ZEE. Elle est la plus élevée au Togo et au Bénin (\> 99.9 %), mais ces pays reçoivent peu d'effort total, même par rapport à leur surface (@fig-rgb-eez). Au contraire, le Cameroun (93.6 %), le Nigéria (71.3 %) et le Ghana (26.2 %) sont des zones de pêche majeures avec une proportion élevée d'effort dans les eaux territoriales. Cet effort est entièrement illégal au Ghana, qui interdit totalement la pêche industrielle dans la bande des 12 nm. Le Cameroun ne réserve qu'une bande de 3 nm à la pêche artisanale, mais 18 % de l'effort de pêche industriel s'y déroule. Une zone de restriction similaire au Nigéria (5 nm) semble relativement respectée (1.1 % des kW.h). Enfin on note que la Mauritanie, le Sénégal et le Sahara occidental sont respectivement en 2^e^, 4^e^ et 5^e^ position du classement de l'effort absolu dans la bande des 12 nm. Le cas du Sénégal est remarquable, puisque la longueur de son trait de côte est relativement limitée. On y compte en moyenne 165110 heures de pêche INN dans la bande des 6 nm par an.
+
+### Responsabilité
+
+```{r}
+#| echo: false
+
+n_guo_countries <- inshore_ds |> distinct(guo_country_iso3) |> nrow()
+
+group1 <- c("ARG", "TUN", "CYP", "USA", "OMN", "SYC", "AUS")
+
+inshore_by_guo_country <- inshore_ds |> 
+  summarize(
+    kWh = sum(kWh, na.rm = TRUE),
+    .by = guo_country_iso3
+  ) |> 
+  mutate(kWh_pct = round(100 * kWh / sum(kWh), 1))
+
+kWh_pct_1 <- inshore_by_guo_country |> 
+  filter(guo_country_iso3 %in% group1) |> 
+  pull(kWh_pct) |> 
+  sum()
+```
+
+La flotte de chalutiers est possédés par des GUO enregistrés dans `{r} n_guo_countries` états différents. Attribuer les impacts (effort total, surface de fond balayée et proportion de l'effort à moins de 12 nm des côtes) à ces états fait émerger plusieurs groupes (@fig-bubble-plot).
+
+Le premier groupe est composé d'états d'enregistrement des GUO à très fort impact. On y retrouve l'Espagne, la Chine, le Maroc, les Pays-Bas, le Nigéria, le Ghana et Taïwan. Parmi eux, les 5 premiers cumulent un effort et un impact sur le fond très importants. A l'inverse, le Nigéria, le Ghana et Taïwan se distinguent plus part une forte proportion des kW.h dépensés proche des côtes. Ils sont rejoints par les Pays-Bas, faisant de ce pays le seul à atteindre le haut du classement pour les trois indicateurs d'impact. 26 pays constituent un groupe intermédiaire difficile à interpréter. On note la présence de la Russie, de la Lituanie et de la Lettonie, propriétaires de méga-chalutiers pélagiques fournissant un effort important. On distingue enfin 8 pays dont les entreprises possèdent des chalutiers entièrement pélagiques, dont la surface balayée est estimée nulle. Leur impact apparaît faible : ils cumulent `{r} kWh_pct_1` % des kW.h apparents dont moins de 10 % sont dépensé dans la bande des 12 nm.
+
+Enfin les chalutiers possédés par des GUO enregistré dans l'Union Européenne représentent un groupe à très fort impact. Parmi les pays, ce groupe est celui qui totalise le plus de kW.h et de surface balayée. Les chalutiers possédés par des entreprises européennes dépensent aussi plus de 20 % de leur effort dans la bande des 12 nm en moyenne.
+
+![Bubble plot attribuant les impacts de la flotte de chalutiers visible par AIS aux états d'enregistrement des propriétaires ultimes (GUO). Les impacts sont calculés dans la zone FAO n°34 avec une restriction de la bathymétrie à 1000 m. On utilise l'effort apparent GFW (en kW.h) sur la période 2020-2024 et les distances de chalutage démersal sur la période 2020-2023. Les ouvertures entre panneaux sont dérivées du modèle BENTHIS OT_MIX [@eigaard2016]. Les pays sont identifiés par leur code iso-3 et 'UE (total)' désigne l'impact agrégé des pays de l'Union Européenne.](figures/guo_impact_bubble_plot.png){#fig-bubble-plot width="16cm"}
+
+\FloatBarrier
+
+# Discussion
+
+```{r}
+#| echo: false
+
+no_imo_by_flag <- effort_ds$clean_effort |> 
+  filter(is.na(assigned_imo)) |> 
+  distinct(vessel_id, flag) |> 
+  mutate(n_tot = n()) |> 
+  summarize(
+    n_tot = first(n_tot),
+    n = n(),
+    pct = round(100 * n / n_tot),
+    .by = flag
+  )
+
+no_owner_by_flag <- effort_ds$clean_effort |> 
+  filter(is.na(guo_name)) |> 
+  distinct(mmsi, flag) |> 
+  mutate(n_tot = n()) |> 
+  summarize(
+    n_tot = first(n_tot),
+    n = n(),
+    pct = round(100 * n / n_tot),
+    .by = flag
+  )
+
+waf_guo_list <- effort_ds$clean_effort |> 
+  filter(guo_country_iso3 %in% west_africa_flags) |> 
+  distinct(assigned_imo, flag_iso3c,
+           ish_name, ish_country_iso3, 
+           guo_name, guo_country_iso3,
+           ish_confidence, guo_confidence) |> 
+  arrange(guo_country_iso3, ish_name) |> 
+  mutate(
+    same_guo_ish = (ish_name == guo_name)
+  )
+write.csv(waf_guo_list, "output/data/ownership/west_african_guo_vessels.csv",
+          row.names = FALSE)
+
+waf_ish_guo_diff_pct = round(100 * sum(waf_guo_list$same_guo_ish) / nrow(waf_guo_list), 1)
+```
+
+```{r}
+#| echo: false
+
+sen_to_esp <- effort_ds$clean_effort |> 
+  filter(flag_iso3c == "SEN", guo_country_iso3 == "ESP") |> 
+  distinct(assigned_imo, gear_type)
+```
+
+L’Atlantique Centre-Est conserve à ce jour le statut de région de pêche distante majeure. Il s'y produit un effort considérable, concentré sur le plateau continental du LME du courant des Canaries. La part des intérêts étrangers dans cet effort est remarquable, alors même qu'un grand nombre de stocks de la région sont surexploités.
+
+Dans ce contexte, on observe un désengagement apparent de l'Union européenne. Les pays membres de l'UE sont pourtant des acteurs historiques majeurs dans la région. D'abord par leur histoire coloniale, puisque l'essentiel de la côte a été colonisé, principalement par la France, mais aussi par le Royaume-Uni, l'Espagne et le Portugal (par ordre de surface appropriée décroissante). Puis, après les déclarations d'indépendance des États ouest-africains, par un système d'accords [@lemanach2013]. Ces accords ont pris une forme unique pour l'ensemble de l'UE à partir de 1979 au Sénégal, puis en 1983 avec la première version de la politique commune des pêches (PCP). Cependant, le manque de considération vis-à-vis de l'impact écologique et socio-économique de la flotte européenne de pêche distante a été décrié. La dernière réforme de la PCP, qui date de 2013, a officiellement cherché à incorporer ces préoccupations dans la nouvelle forme d'accords qu'elle encadre : les Sustainable Fisheries Partnership Agreements (SFPAs). Sur la période de l'étude (2020-2024), on compte neuf SFPAs actifs entre l'UE et des pays de la zone FAO n°34. Quatre sont limités aux grands pélagiques : au Cap-Vert (1991-), en Côte d'Ivoire (1991-2024), au Liberia (2015-2020) et à Sao Tomé-et-Principe (1983-2024). On trouve ensuite des accords dits "mixtes", mêlant grands pélagiques et espèces démersales et/ou petits pélagiques : Gambie (2019-), Guinée-Bissau (2015-), Sénégal (2014-2024), Mauritanie (1987-) et Maroc (2014-2023).
+
+Ceux-ci sont de plus en plus remis en cause, à mesure que sont pointées les incohérences entre la volonté affichée d'entretenir des accords de pêche environnementalement soutenables et équitables d'une part, et la réalité d'autre part [@okafor-yarwood2020]. Il est par exemple établi qu'une part significative des stocks démersaux ciblés par les SFPAs sont soit pleinement exploités, soit surexploités, soit non évalués [@lemanach2013a; @belhabib2019a]. Les SFPAs sont également qualifiés d'opportunistes, l'UE n'hésitant pas à signer des accords avec des pays manquant de capacité et/ou de volonté pour surveiller la pêche INN, notamment dans le golfe de Guinée [@okafor-yarwood2019]. En parallèle de telles critiques, et face aux conséquences sociales et politiques de l'accaparement de la ressource halieutique par les puissances étrangères, les États détenteurs ont affiché une volonté grandissante de réduire la capacité de pêche distante dans leurs eaux. En actes, cette volonté se traduit par la création de zones de restrictions, priorisant la pêche artisanale ou industrielle locale, la diminution des quotas attribués aux pavillons étrangers, la renégociation ou le non-renouvellement des accords de pêche [@belhabib2020; @lemanach]. @lemanach, jetant un regard rétrospectif sur 45 ans d'accords de pêche européens avec des pays du Sud global, montre que la capacité européenne autorisée à pêcher à l'étranger est en baisse et de plus en plus restreinte à la pêche thonière. La flotte distante de chalutiers démersaux, après un pic dans les années 1990, semble condamnée à disparaître. En cause : la nature changeante des accords signés. L'UE ne signe plus d'accords mixtes (ciblant les espèces démersales et pélagiques) et les SFPAs sont de plus en plus purement thoniers.
+
+L'acquisition de navires sous pavillons locaux par des entreprises européennes, démontrée dans notre étude et sans commune mesure dans la région, apparaît alors comme une révolution supplémentaire de la longue histoire de l'exploitation des eaux ouest-africaines par les capitalistes européens. Ce phénomène est peut-être l'un des facteurs qui ont poussé l'UE à accepter des accords l'excluant officiellement de la pêche démersale en Afrique de l’Ouest, alors que la capacité de négociation – voire de coercition – de l'Union s'est illustrée maintes fois. Il marque cependant un recul important. De telles joint ventures sont par nature plus opaques que les accords officiels, et contournent les régulations instaurées par les États côtiers vis-à-vis de la pêche étrangère (zones interdites, quotas, etc.). Les propriétaires ultimes européens sont pourtant responsables des décisions stratégiques et captent la majorité des bénéfices économiques. La responsabilité des impacts associés à leur activité leur incombe donc.
+
+Le cas du Sénégal est exemplaire. L'exploitation des eaux sénégalaises par des pêcheurs européens a peut-être commencé aussi tôt que le début du XVe siècle, et la présence de pêcheurs français est attestée dès le XVIe siècle. La pêche distante est ensuite organisée et encouragée par les autorités coloniales au cours de deux siècles de domination française, dans le but de répondre à la demande métropolitaine. Son développement, dépendant de subventions publiques allouées, se fait au détriment de la pêche artisanale locale [@chauveau1989]. Après l'indépendance du Sénégal en 1960-1962, le Sénégal est le premier pays à signer un accord de pêche avec l'Union européenne – alors Communauté économique européenne – en 1979. L'accord est initialement justifié par l'abondance de la ressource et la faible capacité sénégalaise, et cible une variété d'espèces, notamment démersales. Face à l'effondrement de la ressource, il est suspendu en 2006. Il n'est rouvert qu'en 2014, ciblant désormais presque exclusivement le thon [@lemanach2021]. Expiré en novembre 2024, l'accord n'a pas été renouvelé, dans un contexte de crise du secteur de la pêche sénégalais [@lemonde2024]. L'Union européenne se retire donc complètement du Sénégal, au motif officiel du manque de surveillance contre la pêche INN assuré par l’État sénégalais. Il est donc surprenant d'observer qu'en parallèle, environ 60 % de la flotte sénégalaise visible par AIS (23 chalutiers) est possédée par des propriétaires espagnols.
+
+Le second résultat majeur de notre étude est la confirmation de l'hégémonie chinoise dans la région. La présence chinoise en Atlantique Centre-Est est documentée depuis les années 1950. Elle est donc relativement récente, mais elle a très fortement augmenté durant les dernières décennies [@tickler2018]. Les données GFW confirment que les navires battant pavillon chinois représentent la plus importante flotte de la région, aussi bien en capacité qu'en effort. Les chalutiers sous capitaux chinois sont également responsables de la plus grande surface abrasée estimée.
+
+Il est remarquable que la Chine se hisse en haut de tous les classements d'effort et d'impact, alors même que son effort et ses impacts sont disproportionnellement affectés par les biais des données utilisées. Premièrement, l'utilisation de transpondeurs AIS de classe B est largement répandue dans la flotte chinoise [@taconet2019]. Ceux-ci sont moins puissants, impliquant une moins bonne réception des messages par satellite. @taconet2019 indiquent que le temps de pêche apparent est fortement sous-estimé pour les transpondeurs de classe B. Le temps réel peut être jusqu'à trois fois plus élevé. De plus, la prévalence des navires pour lesquels on ne dispose pas d'estimation de la capacité (longueur, tonnage et puissance) est très élevée dans la flotte chinoise (@tbl-capacity-summary). Le choix d'utiliser le kW.heure comme unité d'effort a conduit à ignorer l'effort et l'impact de ces navires. Enfin, la méthodologie déployée pour l'acquisition de données sur l'identité puis la propriété des navires a été développée de façon à ne pas surestimer le rôle des puissances étrangères. Elle peut produire des "faux négatifs", i.e. des navires sous capitaux étrangers non identifiés comme tels de plusieurs façons : par la non-identification du numéro IMO associé à un identifiant GFW ; par la non-identification d'un GUO ; par l'identification d'un propriétaire non final (causée par un graphe de propriété incomplet dans ORBIS). Les deux premières étapes affectent de façon disproportionnée les navires sous pavillon chinois, diminuant probablement l'image obtenue de l'impact total des entreprises chinoises. La dernière étape ne peut qu'être soupçonnée. Il est cependant hautement probable que le repavillonnement des navires chinois soit un phénomène courant. Il est par exemple pointé du doigt au Sénégal, où le Groupement des Armateurs et industriels de la Pêche au Sénégal (GAIPES) reprochait en 2020 au gouvernement son laisser-aller vis-à-vis de la "sénégalisation rapide et fictive des navires chinois" [@gaipes2020].
+
+Enfin, on rappelle que l'ensemble des analyses proposées s’appuie sur des données d'effort dérivées de l'AIS. En plus des incertitudes associées au type de transpondeurs, il est notable que la conscience des utilisations du système pour la surveillance (soit instantanée pour lutter contre la pêche INN, soit rétrospective comme le présent travail) est de plus en plus répandue parmi les entreprises de pêche. En conséquence, on observe des comportements consistant à interrompre les émissions AIS pendant tout ou partie de la pêche. Ces comportements semblent affecter principalement la flotte distante européenne [@cappa2024].
+
+# Conclusions et perspectives
+
+On montre ainsi que, malgré l'apparente contribution de quelques acteurs régionaux, la pêche industrielle en Atlantique Centre-Est est dominée par deux acteurs distants aux stratégies différentes. D’un côté, la Chine, dont la position hégémonique est difficile à estimer à cause de l’opacité relative qui entoure sa flotte. De l’autre, l’Union européenne, normalement figure de bon élève en matière de transparence, mais qui semble avoir récemment choisi comme stratégie d’implantation l’établissement de joint-ventures, contournant son propre système d’accords de pêche, jusqu’ici dominant. Ces entités pêchent essentiellement au chalut sur le plateau continental. On estime qu'une part majoritaire des captures réalisées concerne des stocks surexploités, en contradiction avec le concept de surplus.
+
+Cette nouvelle image de la pêche industrielle dans région a le mérite de mettre les continuités et les ruptures avec les dynamiques connues. Elle reste cependant parcellaire. En particulier, la stratégie européenne de dissimulation derrière des pavillons locaux devra être investiguée plus en détail. Il serait notamment utile d'analyser la dynamique de repavillonnement des navires européens, en lien les négociations des SFPAs passés.
+
+L’approche de régionalisation par flottilles de la pêche visible par AIS pourrait également être plus poussée. En délimitant des régions homogènes vis-à-vis de critères relatifs à l’effort de pêche, elle permet de suivre plus précisément une activité qui n’est souvent pas limitée aux frontières administratives. Notre analyse montre le potentiel de l’approche au niveau régional pour la pêche côtière, ainsi que ses limites dans le cas de la pêche thonière. Une cartographie de la pêche mondiale pourrait cependant être envisagée, sous réserve d’une meilleure prise en compte des transitions progressives entre régions. On peut aussi exploiter une telle approche autrement, en définissant par exemple l’unité – l’espèce dans l’analogie avec l’écorégionalisation – en fonction de la classe de taille des navires, donnant à voir des régions spécialisées et d’autres où les petits navires sont en compétition avec les grands.
+
+Un point d’amélioration majeur réside dans le perfectionnement des bases de données de propriété des navires. Sans qu’il soit possible de le quantifier précisément, on estime nombreux les cas où l’analyse de la propriété n’est pas parvenue à identifier le propriétaire final. Étant donné l’importance majeure que revêt la propriété des navires pour l’identification des acteurs responsables des impacts sur les socio-écosystèmes marins, on ne peut qu’appeler de ses vœux la construction et l’entretien d’une base de données internationale publique à ce sujet. La base de données "Ship and Company Particular" du GISIS constitue un pas, mais une plateforme donnant accès à la totalité de l’arbre de propriété, idéalement jusqu’aux actionnaires, serait nécessaire. Alors que les stratégies des multinationales de la pêche distante se complexifient, un tel suivi constituerait un outil crucial afin de tenir pour responsables les bénéficiaires de l’accaparement et de la destruction d’une ressource qui constitue à la fois la richesse et le moyen de subsistance de peuples précarisés par l’économie mondiale.
+
+# Références
+
+::: {#refs}
+:::
+
+# Annexes
+
+## Disponibilités des données et réorientation méthodologique {#sec-data-sources}
+
+L'objectif initial du stage s'inspirait des travaux de Quimper *et al.* [@quimper2024], réalisés en collaboration avec Bloom. Les chercheurs de l'Institut Agro Rennes-Angers sont parvenus à calculer des indicateurs de performances environnementales pour plusieurs segments de la flottes françaises, caractérisés par la taille des navires (\< 12 m, 12 - 24 m et \> 24 m) et le type de métiers (arts dormants, drague et polyvalents, chaluts et sennes pélagiques, chalut et sennes démersales). Pour chaque segments, ils ont calculé son impact sur la surpêche, la mortalité des juvéniles, celle des espèces sensibles (oiseaux et mammifères marins), l'abrasion des fonds marins et les émissions directes de CO~2~. Ce travail, complété par une étude sur les performances socio-économiques des même flottilles, constitue une information précieuses pour orienter la transition du secteur en France.
+
+Après passage en revue des données disponibles, il est apparu qu'en dépit des avancées majeures que constituent les bases de données comme celle du *Sea Around Us* ou de *Global Fishing Watch*, l'Atlantique Centre-Est est une région relativement pauvre en données comparativement à la France. La table X résume les différentes sources de données considérées, ainsi que les variables associées, leurs couvertures et leurs résolutions.
+
+Parmi les données existantes, on trouve une importante variabilité dans les couvertures et résolutions spatio-temporelles. De plus, certaines données à l'image de celles du *Sea Around Us* incorporent une part importante de dire d'expert et d'estimation par proxy. Si elles représentent tout de même une source d'information précieuse en tant que telles, il reste qu'effectuer des calculs complexes sur la base de ces données conduirait à une faible confiance dans les résultats. On conclut donc qu'une analyse multidimensionnelle des impacts multiples de la pêche industrielle dans la région ne semble pas présentement possible.
+
+!["Sources de données explorées avec leur couverture et résolution spatio-temporelle et vis-à-vis des flottes de pêche."](tables/tbl_data_register.png){#tbl-data-register width="15cm" height="36.3cm"}
+
+## Méthodologies Global Fishing Watch
+
+### La technologie AIS {#sec-ais}
+
+Le système d’identification automatique (AIS) est un système d’échange d'information indiquant notamment la position et la course des navires. L’AIS est composé d’un émetteur en lien avec plusieurs instruments de mesure (GPS, gyrocompas, loch). A une fréquence élevée (quelques secondes à 3 min) un message radio est émis, contenant le numéro MMSI (*Maritime Mobile Service Identity*) du navire et sa position. D'autres informations sont diffusées comme le cap vrai, la vitesse sur le fond ou encore l'heure [@itu2014]. Le numéro MMSI, identifiant unique du navire, est attribué par le pays d’immatriculation du navire et nécessite l’intervention d’un technicien pour être modifié. Le navire émet également des informations sur ses caractéristiques (dimensions, nom, type de navire, cargaison, etc.) et celles de son voyage (ETA par exemple) toutes les 6 min environ. Ces informations sont renseignées par l’équipage. Développé pour que les navires communiquent leur position aux navires proches et aux stations de surveillance terrestres (ex : CROSS), l'AIS est aujourd'hui utilisé pour suivre les navires grâce à des satellites capables de capter les messages émis (on parle de satellite-based AIS ou S-AIS). Le S-AIS permet de couvrir l’ensemble des eaux mondiales, et améliore la fiabilité des informations AIS [@taconet2019].
+
+### Type d'engin et effort de pêche apparent [@kroodsma2018]
+
+...
+
+![Evolution du nombre de navires différents pêchant dans la zone FAO n°34 par année, de 2014 à 2024. Deux identifiants sont utilisés pour compter les navires : l'identifiant GFW et le numéro MMSI.](figures/n_fishing_vessels_per_year_fao34_gfw.png){#fig-n-vessels width="16cm"}
+
+### Effort apparent des chalutiers (non publié)
+
+A ce jour une limite majeure des données d'effort apparent de GFW est l'absence de distinction entre chalutage de fond et chalutage pélagique [@kroodsma2018]. Un nouveau classifieur a été développé par GFW à partir des données labellisées de 713 chalutiers, pêchant de 2017 à 2023. Pour 46 % des navires on dispose de données de logbooks, dans lesquels les équipages renseignent le début et la fin de chaque activité de pêche ainsi que le type d'engin utilisé. Pour le reste des navires les trajectoires ont été annotées par le *Conziglio Nazionale delle Ricerche* (34 %) et par GFW (20 %) en utilisant des critères telles que le profil de vitesse (pour définir les activités de pêche), le type d'engin enregistré, la bathymétrie, le patron de mouvement et le lieu de pêche (pour décider entre chalutage démersal ou pélagique). Le modèle montre de bonnes performances sur le jeu de test pour la classe "chalutage de fond" avec une précision de 0.85 et un rappel de 0.86. Les performances sont moindres pour le chalutage pélagique qui est surestimé (cf. @fig-confusion-trawling-gfw).
+
+![Matrices de confusion du modèle de chalutage développé par GFW et évalué sur le jeu de donné de test : (a) normalisée sur les labels vrais (b) normalisée sur les prédictions.](figures/confusion_matrices_gfw_trawling_model.png){#fig-confusion-trawling-gfw fig-align="center" width="16cm"}
+
+## Données de captures et évaluations
+
+![Carte de la zone FAO n°34 montrant la correspondance entre les LME du courant des Canaries et du courant de Guinée d'une part, et les ZEE contenu dans les sous-région du COPACE (Nord et Sud). Les quelques ZEEs non contenues dans les LME ne contiennent pas de plateau continental.](figures/lme_eez_map.png){#fig-map-lme-cecaf fig-align="center" width="16cm"}
+
+## Propriété des navires
+
+![Exemple de recherche par numéro MMSI dans la base de données "Ship and Company Particulars" du GISIS.](figures/gisis_example_1.png){#fig-gisis-example fig-align="center" width="14cm"}
+
+![Informations disponibles dans la base de données "Ship and Company Particulars" du GISIS pour le JU RONG YU 2.](figures/gisis_example_2.png){#gisis-example-2 fig-align="center" width="14cm"}
+
+### Exemple de cas ambigu {#sec-annexe-rimbal}
+
+Le cas du RIMBAL 5 est un bon exemple. GFW fourni des données d'effort pour un identifiant donné, dont on connait le nom (RIMBAL 5) et le numéro MMSI (654076800), mais pas le numéro IMO (@tbl-rimbal-effort). De plus, la recherche sur GISIS échoue en utilisant l'un comme l'autre.
+
+Cependant, en cherchant sur internet, on trouve une photographie du RIMBAL 5 sur un site spécialisé ([www.shipspotting.com](www.shipspotting.com); @fig-rimbal-shipspotting .a). Dans les métadonnées de la photographie est mentionné l'ancien nom du navire : AMARO (@fig-rimbal-shipspotting .b). Pour confirmer le changement de nom, on s'appuye sur les trajectoires des deux navires sur GFW (@fig-rimbal-name-change). Il apparaît clairement que l'AMARO s'est renommé en juillet 2021. Enfin, une nouvelle recherche sur GISIS montre que ce nom est associé à un numéro IMO. On peut dès lors attribuer ce numéro à l'identifiant du RIMBAL 5.
+
+\FloatBarrier
+
+![Échantillon d'observations d'effort de pêche apparent GFW pour le RIMBAL 5.](tables/tbl_rimbal_effort.png){#tbl-rimbal-effort}
+
+![Captures d'écran de la page du RIMBAL 5 sur le site ShipSpotting (www.shipspotting.com) comprenant : a. La photographie du navire avec des marques explicites; b. Les métadonnées indiquant les noms actuel et précédent.](figures/rimba_5_shipspotting.png){#fig-rimbal-shipspotting fig-align="center" width="500"}
+
+![Capture d'écran du 'Vessel Finder' de GFW montrant les trajectoire de l'AMARO (vert) et du RIMBAL 5 (rouge) de juuin à octobre 2021. On observe : a. L'arrivée de l'AMARO dans les eaux mauritanienne; b.&c. Le changement d'identité du navire à quai au port de Cansado ; d. Un événement de pêche du RIMBAL 5.](figures/rimbal_5_name_change_gfw.png){#fig-rimbal-name-change fig-align="center" width="400"}
+
+### Bilan de la collecte de données
+
+\FloatBarrier
+
+![Distribution de la capacité de pêche en fonction du niveau de confiance dans l'attribution d'un numéro IMO.](tables/tbl_imo_summary.png){#tbl-imo-summary width="16cm"}
+
+\FloatBarrier
+
+## Distribution et composition de l'effort apparent
+
+```{=latex}
+\begin{figure}[H]
+  \centering
+  \begin{minipage}{0.48\textwidth}
+    \includegraphics[width=\linewidth]{figures/ternary_legend_rbg_hcl.png}
+    \caption*{(a)}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.48\textwidth}
+    \includegraphics[width=\linewidth]{figures/ternary_distribution.png}
+    \caption*{(b)}
+  \end{minipage}
+  \caption{Graphes ternaires décrivant la visualisation de l'effort proposé en Figure \ref{fig-rgb-eez}. Le plan ternaire est composé de l'effort relatif de la pêche domestique (Dom), distante ouest-africaine (Dist Af) et distante non ouest-africaine (Dist autre) : (a) Correspondance entre composition de l'effort et nuance dans l'espace HCL; (b) Distribution des cellules dans le plan de la composition de l'effort. Bien que la nature polaire de la nuance dans le plan HCL ne permette de visualiser que l'effort relatif de deux sources à la fois (les sources dominantes), (b) montre qu'il n'y pratiquement jamais d'effort équilibré entre les trois sources. La concession faite du point de vue de la nuance est donc minime, et permet d'obtenir des couleurs perceptuellement uniformes. On peut alors fidèlement représenter l'intensité totale des points grâce à la luminance.}
+  \label{fig-ternary-plots}
+\end{figure}
+```
+
+![Distribution spatiale de l'effort apparent GFW (en kW.h) dans la zone FAO n°34 sur la période 2020-2024 par type d'origine des pavillons : pêche domestique, pêche distante de pavillons ouest-africains et pêche distante non ouest-africaine. L'effort des navires dont le pavillon est inconnu est montré en bas à droite.](figures/map_effort_by_origin_type_facetted.png)
+
+![Résumé de la distribution de l'effort de pêche apparent GFW (en kW.h) dans la zone FAO n°34 sur la période 2020-2024, en fonction de la zone de pêche (Haute mer, ZEE), du type d'engin ou du pavillon.](figures/effort_summary.png){#fig-effort-sumary width="16cm"}
+
+\FloatBarrier
+
+## Clustering spatial
+
+![Distribution de l'effort apparent relatif (en kW.h) des types d'engins en fonction de la bathymétrie.](figures/gear_type_effort_by_bathy.png){#fig-gear-bathy width="10.4cm"}
+
+![Graphe de choix des hyper-paramètre dans les approches de régionalisation de l'effort de pêche. Pour chaque combinaison $(k, \alpha)$ on réalise un clustering hiérarchique à $k$ classes (méthode de Ward) des cellules de maille 0.5°x0.5° caractérisées par l'effort des flottilles.](figures/silhouettes.png){#fig-silhouettes width="16cm"}
+
+![Distribution de l'effort apparent GFW (kW.h.an^-1^) au-delà du plateau continental (bathymétrie \> 1000 m) par flottille de pêche. Les flottilles sont ordonnées par ordre décroissant d'effort. On montre ici le haut du classement réalisant plus de 95 % de l'effort.](figures/effort_top95percent_openocean.png){#fig-top95-openocean width="10.3cm"}
+
+![Distribution spatiale de l'effort apparent GFW (kW.h) des six première flottille de pêche thonière de la zone FAO n°34 sur la période 2020-2024.](figures/map_effort_top6_openocean_kWh.png){#fig-maps-top6-openocean width="16cm"}
+
+\FloatBarrier
+
+![Effort et diversité des flottilles de chalutiers dans les 9 régions décrites.](tables/tbl_clustering_trawlers.png){#tbl-clustering-trawlers width="16cm"}
+
+\FloatBarrier

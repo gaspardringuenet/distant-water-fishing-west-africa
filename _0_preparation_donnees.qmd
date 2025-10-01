@@ -1,0 +1,1747 @@
+---
+title: "_0_preparation_donnees"
+project:
+  execute-dir: project
+format: html
+results: hide
+fig-show: hide
+message: false
+warning: false
+---
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(readr)
+library(gfwr)
+library(raster)
+library(sf)
+library(janitor)
+library(countrycode)
+library(openxlsx)
+library(forcats)
+library(stringr)
+library(worrms)
+library(purrr)
+```
+
+On détaille ici l'origine et la préparation des données utilisées dans les analyses du rapport.
+
+Deux hyper-paramètres pour contrôler la réécriture et le téléchargement des fichiers. Si `FORCE_WRITE = FALSE` alors certains fichiers lourds ne seront pas réécris (s'ils l'ont déjà été). De même `FORCE_DOWNLOAD_GFW` contrôle le re-téléchargement des données d'effort de pêche apparent Global Fishing Watch depuis l'API. `SKIP_CATCH` permet de passer la partie captures, indépendante du reste et chronophage.
+
+```{r}
+FORCE_WRITE <- FALSE
+FORCE_DOWNLOAD_GFW <- FALSE
+SKIP_CATCH <- TRUE
+```
+
+## Polygones de référence
+
+On utilise plusieurs polygones de référence :
+
+-   Le contour de l'Atlantique Centre-Est (zone FAO n°34)
+
+```{r}
+#| label: load-fao34-sf
+
+fao34_sf <- st_read("data/shapefiles/FAO_AREAS_CWP_NOCOASTLINE/FAO_AREAS_CWP_NOCOASTLINE.shp") |> filter(F_CODE == 34)
+```
+
+-   Les zones économiques exclusives qui intersectent la zone FAO n°34 et leur intersection avec celle-ci.
+
+```{r}
+#| label: load-eez-sf
+
+eez_sf <- st_read("data/shapefiles/FAO34_EEZ/eez_fao34.shp")
+eez_overlap_sf <- eez_sf |>
+  st_intersection(fao34_sf |> dplyr::select(geometry))
+```
+
+-   Les Large Marine Ecosystems (LME) du courant des Canaries et du courant de Guinée.
+
+```{r}
+#| label: load-lme-sf
+
+lme_sf <- st_read("data/shapefiles/lme-large-marine-ecosystems-main/polygons/shp/lme66.shp") |>
+  clean_names() |>  
+  filter(lme_number %in% c(27, 28))
+```
+
+## Rasters
+
+### Raster de bathymétrie
+
+Raster d'altitude globale en mètres disponible sur le site de Global Fishing Watch (Lien : ...). Résolution de ... degré. Source : ....
+
+```{r}
+#| label: load-bathymetry-raster
+
+bathymetry_raster <- raster("data/bathymetry.tif")
+crs(bathymetry_raster) <- CRS("+proj=longlat +datum=WGS84 +no_defs")
+```
+
+### Raster de distance à la côte
+
+Raster de distance à la côte disponible sur le site de Global Fishing Watch (Lien : ...). Résolution de ... degré. Source : ...
+
+```{r}
+#| label: load-dist-to-shore-raster
+
+distance_to_shore_raster <- raster("data/distance-from-shore.tif")
+crs(distance_to_shore_raster) <- CRS("+proj=longlat +datum=WGS84 +no_defs")
+```
+
+### Raster de distance au port
+
+Raster de distance au port de départ en kilomètres fourni par Global Fishing Watch avec une résolution de ... degré. Lien : ...
+
+```{r}
+#| label: load-dist-from-port-raster
+
+distance_from_port_raster <- raster("data/distance-from-port-v20201104.tiff")
+crs(distance_from_port_raster) <- CRS("+proj=longlat +datum=WGS84 +no_defs")
+```
+
+## Caractéristiques de la flotte visible par AIS
+
+Taille (*Length Overal All - LOA*), puissance maximale du moteur (kW) et tonnage brute (GT) issus de registres ou estimés par le classifieur de trajectoires de Global Fishing Watch pour l'ensemble des numéros MMSI de la flotte de pêche mondiale visible par AIS, de 2012 à 2024. La clé primaire est le couple année x MMSI. Lien : <https://globalfishingwatch.org/data-download/datasets/public-fishing-effort> .
+
+```{r}
+#| label: load-vessels-info
+
+vessels_info <- read_csv("data/vessel_info_gfw/fishing-vessels-v3.csv")
+```
+
+## Effort de pêche apparent Global Fishing Watch
+
+### Téléchargement de l'effort contenu dans le polygone de la zone FAO n°34
+
+Les données d'effort de pêche apparent sont téléchargées à l'aide du package R *gfwr* pour une période de 5 ans : du 1^er^ janvier 2020 au 31 décembre 2024. On utilise la fonction `get_raster` pour importer l'effort des cellules incluses dans le polygone de la zone FAO n°34. L'unité de flotte utilisée est l'identifiant Global Fishing Watch, ou `vessel_id`, qui agrège les trajectoires correspondant au même navires de façon conservatrice.
+
+```{r}
+#| label: gfw-import-fun
+
+# Import function embedding get_raster
+gfw_import <- function(year, spatial_resolution, temporal_resolution, region, region_source){
+  get_raster(spatial_resolution = spatial_resolution,
+             temporal_resolution = temporal_resolution,
+             group_by = "VESSEL_ID",
+             start_date = paste0(year,"-01-01"),
+             end_date = paste0(year,"-12-31"),
+             region = region,
+             region_source = region_source,
+             key = Sys.getenv("GFW_TOKEN"))
+}
+```
+
+On télécharge les données avec deux résolutions spatio-temporelles différentes :
+
+1.  Les données de basse résolution spatiale (0.1°x0.1°) avec une résolution temporelle mensuelle.
+
+```{r}
+#| label: gfw-monthly-low-import-fun
+
+temp_res <- "MONTHLY"
+spatial_res <- "LOW"
+years <- 2020:2024
+
+raw_file_path <- paste0("output/data/gfw_apparent_fishing_effort/gfw_effort_FAO34_", temp_res, "_", spatial_res, "_", min(years), "-", max(years), "_RAW.csv")
+
+if (!file.exists(raw_file_path) | FORCE_DOWNLOAD_GFW) {
+  gfw_data_ML <- lapply(
+    years, 
+    function(year)
+      gfw_import(
+        year = year, 
+        spatial_resolution = spatial_res,
+        temporal_resolution = temp_res,
+        region = fao34_sf, 
+        region_source = 'USER_SHAPEFILE'
+      )
+  ) |> 
+    bind_rows() |> 
+    clean_names()
+
+  write.csv(gfw_data_ML,
+            raw_file_path,
+            row.names = FALSE)
+} else {
+  gfw_data_ML <- read_csv(raw_file_path)
+}
+```
+
+1.  Les données de haute résolution spatiale (0.01°x0.01°) avec une résolution temporelle annuelle.
+
+```{r}
+#| label: gfw-yearly-high-import-fun
+
+temp_res <- "YEARLY"
+spatial_res <- "HIGH"
+years <- 2020:2024
+
+raw_file_path <- paste0("output/data/gfw_apparent_fishing_effort/gfw_effort_FAO34_", temp_res, "_", spatial_res, "_", min(years), "-", max(years), "_RAW.csv")
+
+if (!file.exists(raw_file_path) | FORCE_DOWNLOAD_GFW) {
+  gfw_data_YH <- lapply(
+    years, 
+    function(year) {
+      message("\nProcessing year: ", year)
+      tryCatch({
+        gfw_import(
+          year = year, 
+          spatial_resolution = spatial_res,
+          temporal_resolution = temp_res,
+          region = fao34_sf, 
+          region_source = 'USER_SHAPEFILE'
+        )}, 
+        error = function(e) {
+         message("Failed to retrieve data for year ", year, ": ", e$message)
+         NULL  # Skip this year
+        })
+    }
+  ) |> 
+    bind_rows() |> 
+    clean_names()
+
+  write.csv(gfw_data_YH,
+            raw_file_path,
+            row.names = FALSE)
+} else {
+  gfw_data_YH <- read_csv(raw_file_path)
+}
+```
+
+### Premier nettoyage
+
+```{r}
+#| label: gfw-data-first-cleaning
+
+first_cleaning_gfw_data <- function(gfw_data) {
+  gfw_data |> 
+    filter(vessel_type == "FISHING") |>                    # Filtering out non "FISHING" vessels
+    mutate(year = as.numeric(str_sub(time_range, 1, 4))) |>  # Extract year from time_range
+    dplyr::select(-c(entry_timestamp, exit_timestamp, first_transmission_date, last_transmission_date, vessel_type)) 
+}
+
+gfw_data_ML <- gfw_data_ML |> first_cleaning_gfw_data()
+
+gfw_data_YH <- gfw_data_YH |> first_cleaning_gfw_data()
+```
+
+### Jointures spatiales
+
+On effectue plusieurs jointures spatiales des données. D'abord avec les polygones des ZEE afin d'attribuer l'effort dans les eaux de chaque pays côtiers. Puis avec les rasters.
+
+```{r}
+#| label: gfw-data-spatial-join
+
+spatial_join_gfw_data <- function(gfw_data) {
+  
+  gfw_data <- gfw_data |> 
+    st_as_sf(coords = c("lon", "lat"), crs = st_crs(eez_sf), remove = FALSE) |>  # Convert spatial effort into and sf object with CRS = WGS 84
+    st_join(eez_sf |>                                                            # Spatial join with EEZs
+            filter(POL_TYPE != "Joint regime") |>
+            dplyr::select(TERRITORY1, ISO_TER1, geometry), 
+          join = st_intersects, left = TRUE) |> 
+    rename(eez_name = TERRITORY1, eez_iso3c = ISO_TER1) |> 
+    mutate(
+      eez_iso3c = case_when(
+        eez_name == "Madeira" ~ "PRT",
+        eez_name == "Azores" ~ "PRT",
+        eez_name == "Canary Islands" ~ "ESP",
+        TRUE ~ eez_iso3c
+      )
+    )
+  
+  # Extract values from rasters
+  gfw_data$distance_to_shore_km <- raster::extract(distance_to_shore_raster, gfw_data)
+  gfw_data$distance_from_port_km <- raster::extract(distance_from_port_raster, gfw_data)
+  gfw_data$bathymetry_m <- raster::extract(bathymetry_raster, gfw_data)
+  
+  return(gfw_data |> st_drop_geometry())
+}
+
+joined_file_path <- paste0("output/data/gfw_apparent_fishing_effort/gfw_effort_FAO34_MONTHLY_LOW_2020-2024_JOINED.csv")
+if (!file.exists(joined_file_path) | FORCE_WRITE) {
+  gfw_data_ML <- spatial_join_gfw_data(gfw_data_ML)
+  write.csv(gfw_data_ML,
+            joined_file_path,
+            row.names = FALSE)
+} else {
+  gfw_data_ML <- read_csv(joined_file_path)
+}
+
+joined_file_path <- paste0("output/data/gfw_apparent_fishing_effort/gfw_effort_FAO34_YEARLY_HIGH_2020-2024_JOINED.csv")
+if (!file.exists(joined_file_path) | FORCE_WRITE) {
+  gfw_data_YH <- spatial_join_gfw_data(gfw_data_YH)
+  write.csv(gfw_data_YH,
+            joined_file_path,
+            row.names = FALSE)
+} else {
+  gfw_data_YH <- read_csv(joined_file_path)
+}
+```
+
+La table "YEARLY HIGH" servira a l'étude de la pêche dans les eaux territoriales. On ne conserve donc pour la suite que l'effort fourni à mon de 200 nm des côtes.
+
+```{r}
+gfw_data_YH <- gfw_data_YH |> 
+  filter(distance_to_shore_km <= 200 * 1.852)
+```
+
+### Jointure avec les caractéristiques des navires
+
+On ajoute à chaque observation de pêche les caractéristiques (taille, puissance et tonnage) du navire. On filtre aussi le jeu de données d'informations pour ne conserver que les navires présent dans les données d'effort analysées.
+
+```{r}
+#| label: gfw-data-add-vessels-info
+
+vessels_info <- vessels_info  |> 
+  mutate(
+    is_inferred_length = is.na(length_m_registry),
+    is_inferred_power = is.na(engine_power_kw_registry),
+    is_inferred_tonnage = is.na(tonnage_gt_registry)
+  ) |> 
+  dplyr::select(year, mmsi, length_m_gfw, engine_power_kw_gfw, tonnage_gt_gfw, is_inferred_length, is_inferred_power, is_inferred_tonnage, registries_listed) |>
+  distinct()
+
+add_vessel_characteristics <- function(gfw_data) {
+  gfw_data |> 
+  left_join(vessels_info |> 
+              distinct(year, mmsi, length_m_gfw, engine_power_kw_gfw, tonnage_gt_gfw),
+            by = c("year", "mmsi"),
+            relationship = "many-to-one")
+}
+
+gfw_data_ML <- gfw_data_ML |> 
+  add_vessel_characteristics() 
+
+gfw_data_YH <- gfw_data_YH |> 
+  add_vessel_characteristics()
+
+all_vessels_x_years <- gfw_data_ML |> 
+  distinct(year, mmsi, vessel_name)
+
+vessels_info <- all_vessels_x_years |>
+  left_join(vessels_info,
+            by = c("year", "mmsi"),
+            relationship = "many-to-one") |>
+  relocate(vessel_name, .after = mmsi)
+```
+
+On peut alors calculer l'effort apparent en kW.heures comme le produit de la puissance maximale du moteur par les heures de pêche apparentes :
+
+```{r}
+
+gfw_data_ML <- gfw_data_ML |> 
+  mutate(kWh = engine_power_kw_gfw * apparent_fishing_hours)
+
+gfw_data_YH <- gfw_data_YH |> 
+  mutate(kWh = engine_power_kw_gfw * apparent_fishing_hours)
+```
+
+### Nettoyage
+
+On ajoute / modifie plusieurs variables. On simplifie le label `gear_type` indiquant le type d'engin. La classification hiérarchique à 18 classes fournie par Global Fishing Watch est résumée en 8 classes :
+
+| Labels d'origine `gear_type` | Nouveau labels `gear_type` | Traduction française `gear_type_fr` |
+|:--:|----|----|
+| Fishing OR Other gear OR Inconclusive | Unknown | Inconnus |
+| Fishing / Seiners | Other seines | Autres sennes |
+| Fishing / Seiners / Other seines | Other seines | Autres sennes |
+| Fishing / Seiners / Purse seines | Other seines | Autres sennes |
+| Fishing / Seiners / Purse seines / Tuna purse seines | Tuna purse seines | Sennes coulissantes au thon |
+| Fishing / Seiners / Purse seines / Other purse seines | Other seines | Autres sennes |
+| Fishing / Squid jiggers | Squid jiggers | Turluttes |
+| Fishing / Drifting longlines | Hooks and lines | Lignes et hameçons |
+| Fishing / Pole and line | Hooks and lines | Lignes et hameçons |
+| Fishing / Trollers | Hooks and lines | Lignes et hameçons |
+| Fishing / Fixed gear | Fixed gear | Arts dormants |
+| Fishing / Fixed gear / Pots and traps | Fixed gear | Arts dormants |
+| Fishing / Fixed gear / Set longlines | Fixed gear | Arts dormants |
+| Fishing / Fixed gear / Set gillnets | Fixed gear | Arts dormants |
+| Fishing / Trawlers | Trawls | Chaluts |
+| Fishing / dredgers | Dredges | Dragues |
+
+```{r}
+#| label: gfw-data-clean-gear-types-fun
+
+clean_gear_types <- function(gfw_data) { 
+  gfw_data |> 
+    mutate(
+      gear_type = case_when(
+        grepl("TUNA", gear_type) ~ "Tuna purse seines",
+        grepl("SEINE", gear_type) & !grepl("TUNA", gear_type) ~ "Other seines",
+        grepl("SQUID", gear_type) ~ "Squid jiggers",
+        grepl("TRAWL", gear_type) ~ "Trawls",
+        grepl("DREDGE", gear_type) ~ "Dredges",
+        grepl("FIXED|POT|SET", gear_type) ~ "Fixed gear",
+        grepl("LINE|TROLL", gear_type) ~ "Hooks and lines",
+        grepl("FISHING|OTHER|GEAR|INCONCLUSIVE", gear_type) ~ "Unknown",
+        TRUE ~ gear_type
+      ),
+      gear_type_fr = case_when(
+        gear_type == "Tuna purse seines" ~ "Sennes coulissantes au thon",
+        gear_type == "Other seines" ~ "Autres sennes",
+        gear_type == "Squid jiggers" ~ "Turluttes",
+        gear_type == "Trawls" ~ "Chaluts",
+        gear_type == "Dredges" ~ "Dragues",
+        gear_type == "Fixed gear" ~ "Arts dormants",
+        gear_type == "Hooks and lines" ~ "Lignes et hameçons",
+        gear_type == "Unknown" ~ "Inconnus",
+        TRUE ~ gear_type
+      )
+    )
+}
+```
+
+On crée également des labels pour caractériser l'appartenance géopolitiques des pavillon et des zones de pêche. On distingue ainsi les ZEE de la haute mer, et l'appartenance des pavillons à l'Union Européenne, à une nation côtière de la zone FAO n°34 ou encore à l' "Afrique de l'Ouest", définie comme les pays africains de la zone FAO n°34.
+
+```{r}
+#| label: gfw-data-add-geopo-labels-fun
+
+west_africa_flags <- c("MAR", "ESH", "MRT", "SEN", "GMB", "GNB",
+                       "GIN", "SLE", "LBR", "CPV", "CIV", "GHA",
+                       "TGO", "BEN", "NGA", "CMR", "STP", "GNQ",
+                       "GAB", "COD", "COG", "AGO")
+
+add_political_labels <- function(gfw_data) {
+  gfw_data |> 
+    mutate(
+      
+      # Add a region type label to distinguish effort in EEZs vs. not
+      region_type = ifelse(!is.na(eez_name), "EEZ", "High seas"),
+      region_type_fr = ifelse(region_type == "EEZ", "ZEE", "Haute mer"),
+      
+      # Clean the flag labels
+      flag_iso3c = flag,
+      flag = countrycode(flag, origin =  "iso3c", destination = "country.name"),
+      
+      # Add booleans for flag political or geographical belonging
+      #is_european_flag = ifelse(flag_iso3c %in% pull(read.xlsx("https://www.dropbox.com/s/dp8l4nz8fmr5v10/eu27_iso_codes.xlsx?dl=1")), TRUE, FALSE),
+      is_fao34_flag = flag_iso3c %in% unique(eez_overlap_sf$ISO_TER1),
+      is_west_african_flag = flag_iso3c %in% west_africa_flags,
+      
+      # Add booleans for type of fishing (domestic or distant)
+      domestic = (region_type == "EEZ") & (flag_iso3c == eez_iso3c) | (eez_iso3c == "ESH") & (flag_iso3c == "MAR"),  # Moroccan fishery in West. Sahara is domestic here
+      
+      ## Type of origin of the flag
+      origin_type_fr = case_when(
+        is.na(flag_iso3c) ~ NA,
+        domestic ~ "Domestique",
+        is_west_african_flag ~ "Distante (pavillon ouest-africain)",
+        TRUE ~ "Distante (autre)"
+      ),
+      origin_type_fr = factor(origin_type_fr, levels = c("Domestique", "Distante (pavillon ouest-africain)", "Distante (autre)")
+      ),
+      origin_type_fr = fct_na_value_to_level(origin_type_fr),
+      
+      ## Type of fishing ground
+      destination_type_fr = case_when(
+        region_type == "High seas" ~ "Haute mer",
+        domestic ~ "Domestique",
+        region_type == "EEZ" & !domestic ~ "ZEE étrangère"
+      )
+    )
+}
+```
+
+On vérifie la validité des numéros IMO fournis par Global Fishing Watch. En plus d'être composés de sept chiffres, les numéros IMO des navires fonctionne avec un système de somme des chiffres permettant de vérifier leur validité. On somme les chiffres des 6 puissances de 10 les plus élevées (2 à 6), multipliés par ces dernières, et le chiffre des unités du résultat doit être le chiffre des unités du numéro IMO. Ex: 8820274. On a 8\*7 + 8\*6 + 2\*5 + 0\*4 + 2\*3 + 7\*2 = 134. 4 est aussi le chiffre des unités de 8820274. Ce numéro est valide.
+
+```{r}
+#| label: gfw-data-imo-checksum-fun
+
+checksum_imo <- function(numbers) {
+  numbers <- as.character(numbers)
+  
+  # Filter valid 7-digit numeric strings
+  valid <- grepl("^\\d{7}$", numbers)
+
+  # Compute checksum and compare to check digit
+  result <- rep(NA_character_, length(numbers))
+  
+  if (any(valid)) {
+    valid_numbers <- numbers[valid]
+    
+    digits <- matrix(as.integer(strsplit(valid_numbers, "") |> unlist()), ncol = 7, byrow = TRUE)
+    
+    weights <- 2:7
+    weighted_sum <- rowSums(digits[, 1:6] * weights)
+    check_digit <- digits[, 7]
+    
+    valid_imo <- check_digit == (weighted_sum %% 10)
+    
+    result[valid] <- ifelse(valid_imo, valid_numbers, NA)
+  }
+  
+  return(result)
+}
+```
+
+On ajoute nettoie ici les types d'engin, on ajoute les labels relatifs aux états et au type de pêche (distante ou domestique), on extrait l'année à partir de `time_range` et on vérifie les numéros IMO.
+
+```{r}
+#| label: gfw-data-clean-labels
+
+clean_labels_gfw_data <- function(gfw_data) {
+  gfw_data |> 
+    clean_gear_types() |> 
+    add_political_labels() |> 
+    mutate(
+      imo = checksum_imo(imo)                         # Check that IMOs are real IMOs
+    ) 
+}
+
+gfw_data_ML <- gfw_data_ML |> clean_labels_gfw_data()
+gfw_data_YH <- gfw_data_YH |> clean_labels_gfw_data()
+```
+
+On réorganise les colonnes.
+
+```{r}
+#| label: gfw-data-relocate-columns
+
+relocate_gfw_data <- function(gfw_data) {
+  gfw_data |> 
+    relocate(
+      year, time_range,
+      lat, lon,
+      region_type, region_type_fr,
+      eez_name, eez_iso3c,
+      flag, flag_iso3c,
+      vessel_name, mmsi, imo, call_sign,
+      apparent_fishing_hours, kWh,
+      gear_type, gear_type_fr,
+      #is_european_flag, 
+      is_fao34_flag, is_west_african_flag,
+      domestic, origin_type_fr, destination_type_fr,
+      length_m_gfw, engine_power_kw_gfw, tonnage_gt_gfw,
+      distance_to_shore_km, distance_from_port_km, bathymetry_m,
+      vessel_id
+    )
+}
+
+gfw_data_ML <- gfw_data_ML |> relocate_gfw_data()
+gfw_data_YH <- gfw_data_YH |> relocate_gfw_data()
+```
+
+Enfin les données sont filtrées. On ne conserve que le type de navire "FISHING", afin d'exclure l'effort apparent des navires qui ne sont pas considérés comme des navires de pêche par Global Fishing Watch. Les colonnes relatives à l'entrée du navire puis à sa sortie de la cellule, ainsi que celles concernant sa période de transmission AIS sont retirées.
+
+Surtout, on applique des limites sur la distance entre l’évènement de pêche et le port de départ (5 km) et le nombre minimum d'heure de pêche d'un navire (2000 heures en 5 ans). Le temps de pêche individuel peut être calculé par identifiant Global Fishing Watch (`vessel_id` ), numéro MMSI ou numéro IMO. Le premier cas a tendance a sous-estimer le temps de pêche puisqu'un même numéro MMSI peut être associé à plusieurs `vessel_id`. Le dernier cas est idéal mais les données sur les numéros IMO sont très lacunaires. On choisit donc le numéro MMSI.
+
+```{r}
+clean_gfw_data <- function(gfw_data,                                 # GFW apparent fishing effort data after spatial joins
+                           min_dist = 5,                             # Minimum distance from port in km
+                           min_hours = 2000,                         # Minimum apparent fishing time per vessel (vessel below this threshold are removed)
+                           unit = c("mmsi", "vessel_id", "imo"),     # Vessel identifier to use
+                           save_small_efforts = FALSE) {             # Whether to include the effort of vessel contributing below the minimum time treshold in a separate df
+  
+  # Match the 'unit' argument
+  unit = match.arg(unit)
+  unit_column <- switch(unit,
+                        "mmsi" = gfw_data$mmsi,
+                        "vessel_id" = gfw_data$vessel_id,
+                        "imo" = gfw_data$imo)
+  gfw_data <- gfw_data |> mutate(unit = unit_column)
+  
+  # Save raw effort
+  total_effort_raw <- sum(gfw_data$apparent_fishing_hours, na.rm = TRUE)
+  
+  # First filters
+  gfw_data <- gfw_data |> 
+    filter(distance_from_port_km >= min_dist)        # Distance from port threshold
+  
+  # Selecting the vessels to keep / filter out based on individual effort
+  total_effort <- sum(gfw_data$apparent_fishing_hours, na.rm = TRUE)
+  
+  vessel_list <- gfw_data |> 
+    summarize(apparent_fishing_hours = sum(apparent_fishing_hours, na.rm = TRUE),
+              .by = c(unit)) |> 
+    filter(apparent_fishing_hours < min_hours) |> 
+    pull(unit)
+  
+  discarded_effort <- gfw_data |> 
+    filter(unit %in% vessel_list) |>
+    summarize(total = sum(apparent_fishing_hours, na.rm = TRUE)) |> 
+    pull(total)
+  
+  # (Optional) Saving the effort of vessels fishing less than min_hours
+    if (save_small_efforts) {
+    small_efforts <- gfw_data |>  filter(unit %in% vessel_list) |> dplyr::select(-unit)
+  } else {
+    small_efforts <- NULL
+  }
+  
+  # Filtering out vessels below the threshold
+  gfw_data <- gfw_data |> filter(!(unit %in% vessel_list)) |> dplyr::select(-unit)
+
+  list(
+    "initial_fishing_time" = total_effort_raw,
+    "total_fishing_time" = total_effort, 
+    "small_efforts_fishing_time" = discarded_effort,
+    "clean_effort" = gfw_data,
+    "small_efforts" = small_efforts
+    )
+}
+
+gfw_ds_ML <- clean_gfw_data(gfw_data_ML, 
+                            min_dist = 5, 
+                            min_hours = 2000,
+                            unit = "mmsi",
+                            save_small_efforts = TRUE)
+
+gfw_ds_YH <- clean_gfw_data(gfw_data_YH,
+                            min_dist = 5,
+                            min_hours = 2000,
+                            unit = "mmsi",
+                            save_small_efforts = FALSE)
+```
+
+On sauvegarde les deux jeux de données d'effort :
+
+```{r}
+#| label: save-gfw-effort-ds
+
+# Saving gfw effort datasets
+if (!file.exists("output/clean_data/_temp/gfw_effort_FAO34_ML_0.rds") | FORCE_WRITE) {
+  saveRDS(gfw_ds_ML, "output/clean_data/_temp/gfw_effort_FAO34_ML_0.rds")
+}
+if (!file.exists("output/clean_data/_temp/gfw_effort_FAO34_YH_0.rds") | FORCE_WRITE) {
+  saveRDS(gfw_ds_YH, "output/clean_data/_temp/gfw_effort_FAO34_YH_0.rds")
+}
+
+# Saving vessel information dataset
+if (!file.exists("output/clean_data/vessels_info.rds") | FORCE_WRITE) {
+  saveRDS(vessels_info, "output/clean_data/vessels_info.rds")
+}
+```
+
+```{r}
+#| label: remove-all-reload-gfw-ds
+
+rm(list = setdiff(ls()[grepl("gfw", ls())], lsf.str()))
+effort <- readRDS("output/clean_data/_temp/gfw_effort_FAO34_ML_0.rds")$clean_effort
+```
+
+## Propriété
+
+### Génération d'une liste de navires pour la recherche
+
+On part des données d'effort de pêche apparent Global Fishing Watch pour établir un classement des `vessel_id`'s ayant pêché le plus dans la zone FAO n°34 entre 2020 et 2024. On conserve les informations fournies par Global Fishing Watch sur l'identité de ces navires (identifiant GFW, MMSI, IMO, call sign, pavillon...).
+
+```{r}
+#| label: ownership-vessel-list
+
+vessels <- effort |> 
+  summarize(apparent_fishing_hours = sum(apparent_fishing_hours, na.rm = TRUE),
+            .by = c(flag, vessel_id, mmsi, vessel_name, imo, call_sign)) |> 
+  arrange(desc(apparent_fishing_hours)) |> 
+  mutate(
+    effort_cumulated_percent = 100 * cumsum(apparent_fishing_hours) / sum(apparent_fishing_hours),
+    rank = row_number()
+  )
+
+# Save for 
+
+write.xlsx(vessels,
+           "output/data/ownership/vessel_ranking_for_ownership_FAO34.xlsx")
+```
+
+Cette liste est ensuite complétée manuellement avec les informations de la base de données GISIS (numéros IMO et entreprises propriétaires). Une part de la recherche comprend aussi la comparaison des traces AIS de `vessel_id`'s qu'on suspecte d'être le même navire. Cette comparaison est effectué via le "Vessel Viewer" de Global Fishing Watch (Lien : <https://globalfishingwatch.org/map/vessel-search>). On utilise des sites tels que MarineTraffic (Lien : [https://www.marinetraffic.com](https://www.marinetraffic.com/)) pour enquêter sur l'identité des navires.
+
+La précision nécessite d'utiliser les `vessel_id`'s comme identifiants, et non les numéros MMSI. Ceci augmente quelque peu le nombre d'individus à identifier. On mène les recherches d'identité sur GISIS pour l'ensemble des `vessel_id`'s avec plus de 2000 heures de pêche apparente entre 2020 et 2024 dans la zone FAO n°34. Puisque plusieurs `vessel_id`'s peuvent être rattachés à un seul numéro MMSI, une part des navires conservés dans le jeu d'effort `gfw_ds_ML$clean_effort` n'a pas été examinée. Il est cependant attendu que les navires sont examinés soient individuellement de plutôt faibles contributeurs à l'effort de pêche apparent total.
+
+### Listes de numéros IMO et entreprises propriétaires pour requête ORBIS
+
+La base de données complétée est ensuite traitée pour crée une liste des IMO et une liste des entreprises propriétaires, qui serviront de bases aux requêtes ORBIS.
+
+```{r}
+path <- "data/ownership/vessel_ranking_for_ownership_FAO34_completed.xlsx"
+
+imo_completed_ranking <- read.xlsx(xlsxFile = path,
+                                   sheet = "complete_imo")
+
+
+# Select only vessel ids with 2000+hrs and clean --------------------------
+
+imo_completed_ranking <- imo_completed_ranking |> filter(apparent_fishing_hours >= 2000)
+
+imo_completed_ranking <- imo_completed_ranking |> 
+  dplyr::select(-gfw_imo) |> 
+  #rename(vessel_name = gisis_vessel_name) |> 
+  mutate(
+    company_address_country = case_when(
+      is.na(company_address_country) ~ company_nationality,   # Fill company address
+      TRUE ~ company_address_country
+    ),
+    imo = as.numeric(imo),                                    # Numeric type for IMO
+    effective_since_year = as.numeric(effective_since_year),  # Numeric type for year
+    gisis_vessel_name = str_trim(gisis_vessel_name),          # Trim white spaces to avoid false differences
+    registered_owner = str_trim(registered_owner)
+  ) |> 
+  mutate(
+    imo_confidence_status = case_when(
+      imo_confidence_code == 1 ~ "IMO provided by GFW",       # Explicit the confidence code
+      imo_confidence_code == 2 ~ "Direct match in GISIS",
+      imo_confidence_code == 3 ~ "Non-ambiguous indirect match",
+      imo_confidence_code == 4 ~ "Ambiguous indirect match",
+      imo_confidence_code == 5 ~ "No association"
+    )
+  )
+
+
+# Create summary of IMO ownership -----------------------------------------
+
+imo_ownership <- imo_completed_ranking |>
+  dplyr::select(vessel_id, mmsi, vessel_name, gisis_vessel_name, imo_confidence_code, imo_confidence_status, imo, registered_owner, company_imo, company_nationality, company_address_country, effective_since_year) |> 
+  filter(!is.na(imo)) |>
+  distinct() |> 
+  arrange(company_nationality, company_imo, imo)
+
+# Get IMO list for ORBIS search -------------------------------------------
+
+imo_list <- imo_completed_ranking |> 
+  dplyr::select(imo, gisis_vessel_name) |> 
+  filter(!is.na(imo)) |>
+  distinct()
+
+
+# Get companies list for ORBIS search -------------------------------------
+
+owners_list <- imo_completed_ranking |> 
+  summarize(n_vessels = n_distinct(imo),
+            .by = c(registered_owner, company_imo, company_nationality, company_address_country)) |> 
+  arrange(registered_owner)
+
+# Save in new sheets ------------------------------------------------------
+
+wb <- loadWorkbook("data/ownership/vessel_ranking_for_ownership_FAO34_completed.xlsx")
+addWorksheet(wb,"GFW-GISIS_key")
+addWorksheet(wb,"IMO_list")
+addWorksheet(wb, "owners_list")
+writeData(wb, "GFW-GISIS_key", imo_ownership)
+writeData(wb, "IMO_list", imo_list)
+writeData(wb, "owners_list", owners_list)
+saveWorkbook(wb, "output/data/ownership/vessel_ranking_for_ownership_FAO34_completed_processed.xlsx", overwrite = TRUE)
+```
+
+### Nettoyage
+
+Les deux listes (numéros IMO et noms des entreprises propriétaires) sont utilisées comme requêtes dans la base de données ORBIS de Bureau Van Dijk. Le résultats est pré-traité à la main. On transforme ensuite les données pour obtenir une base de données de propriété harmonisée. On utilise en priorité les informations obtenues via ORBIS, et en second recourt celles obtenues depuis GISIS.
+
+```{r}
+
+# Key for matching a GFW vessel (vessel_id) to the vessel IMO number and the GISIS company IMO number
+gfw_gisis_key <- read.xlsx("output/data/ownership/vessel_ranking_for_ownership_FAO34_completed_processed.xlsx", sheet = "GFW-GISIS_key") |> clean_names()
+
+# Result of the ORBIS search based on IMO numbers
+orbis_vessels <- read.xlsx("data/ownership/export_orbis_FAO34.xlsx", sheet = "clean_imo_results") |> clean_names()
+
+# Result of the ORBIS search based on GISIS owner company names
+orbis_companies <- read.xlsx("data/ownership/export_orbis_FAO34.xlsx", sheet = "clean_gisis_owner_results") |> clean_names()
+
+
+# Join
+
+# First we add ownership information for the vessel which were recognized by ORBIS using their IMO number
+ownership_table_1 <- gfw_gisis_key |> 
+  dplyr::select(vessel_id, mmsi, vessel_name, imo_confidence_code, imo_confidence_status, imo) |> 
+  left_join(orbis_vessels |> 
+              dplyr::select(starts_with(c("imo", "ish", "guo"))),
+            by = "imo") |> 
+  mutate(
+    ish_confidence = case_when(
+      !is.na(ish_name) ~ "1: Direct IMO ORBIS match",
+      TRUE ~ "Other"
+    )
+  )
+
+matches_1 <- ownership_table_1 |> filter(ish_confidence == "1: Direct IMO ORBIS match")
+
+# For the rest, we try to complete using ORBIS result for the search based on GISIS company name 
+ownership_table_2 <- ownership_table_1 |> 
+  filter(ish_confidence == "Other") |> 
+  dplyr::select(vessel_id, mmsi, vessel_name, imo_confidence_code, imo_confidence_status, imo) |> 
+  left_join(gfw_gisis_key |> 
+              dplyr::select(imo, company_imo) |> 
+              filter(!is.na(imo) & !is.na(company_imo)) |> 
+              distinct(),
+            by = "imo") |> 
+  left_join(orbis_companies |> 
+              dplyr::select(starts_with(c("gisis", "ish", "guo"))),
+            by = join_by(company_imo == gisis_company_imo_number),
+            na_matches = "never") |> 
+  dplyr::select(-c(company_imo, gisis_owner_name)) |> 
+  mutate(
+    ish_confidence = case_when(
+      !is.na(ish_name) ~ "2: GISIS owner ORBIS match",
+      TRUE ~ "Other"
+    )
+  )
+  
+matches_2 <- ownership_table_2 |> filter(ish_confidence == "2: GISIS owner ORBIS match")
+
+# For the vessels we could not match in ORBIS, we use the GISIS owner as ISH
+ownership_table_3 <- ownership_table_2 |> 
+  filter(ish_confidence == "Other") |> 
+  dplyr::select(vessel_id, mmsi, vessel_name, imo_confidence_code, imo_confidence_status, imo) |> 
+  left_join(gfw_gisis_key |> 
+              distinct(imo, registered_owner, company_nationality) |> 
+              filter(!grepl("Rptd", registered_owner)),                    # When GISIS mentions an unknown owner, we encode it as NA instead of adding poor quality info on nationality
+            by = "imo") |> 
+  mutate(
+    company_nationality = case_when(
+      company_nationality == "Azores" ~ "Portugal",
+      company_nationality == "Canary Islands" ~ "Spain",
+    ),
+    company_nationality = countrycode(company_nationality, origin = "country.name", destination = "iso2c")
+  ) |> 
+  rename(ish_name = registered_owner, ish_country_iso2 = company_nationality) |> 
+  mutate(
+    ish_confidence = case_when(
+      !is.na(ish_name) ~ "3: GISIS owner as ISH",
+      TRUE ~ "4: No known ISH"
+    )
+  )
+  
+
+# Combine all the vessels
+
+ownership <- bind_rows(matches_1, matches_2, ownership_table_3) |> 
+  mutate(
+    ish_country_iso2 = countrycode(ish_country_iso2, origin = "iso2c", destination = "iso3c"),
+    guo_country_iso2 = countrycode(guo_country_iso2, origin = "iso2c", destination = "iso3c")
+  ) |> 
+  rename(
+    ish_country_iso3 = ish_country_iso2,
+    guo_country_iso3 = guo_country_iso2
+  )
+
+# Lastly, for the vessels with an ISH but no GUO, we use the ISH as GUO
+
+# Flag the GUO confidence
+ownership <- ownership |> 
+  mutate(
+    guo_confidence = case_when(
+      !is.na(guo_name) ~ "1: GUO found by ORBIS",
+      !is.na(ish_name) ~ "2: ISH used as GUO",
+      TRUE ~ "3: No known GUO"
+    )
+  )
+
+# Complete GUO with ISH
+ownership <- ownership |> 
+  mutate(
+    guo_name = case_when(is.na(guo_name) ~ ish_name, TRUE ~ guo_name),
+    guo_country_iso3 = case_when(is.na(guo_country_iso3) ~ ish_country_iso3, TRUE ~ guo_country_iso3),
+    guo_type = case_when(is.na(guo_type) ~ ish_type, TRUE ~ guo_type)
+  )
+
+# Add total confidence level
+ownership <- ownership |> 
+  mutate(
+    total_confidence = case_when(
+      ish_confidence == "1: Direct IMO ORBIS match" & guo_confidence == "1: GUO found by ORBIS" ~ "High",
+      ish_confidence == "2: GISIS owner ORBIS match" & guo_confidence == "1: GUO found by ORBIS" ~ "High",
+      ish_confidence == "2: GISIS owner ORBIS match" & guo_confidence == "2: ISH used as GUO" ~ "Medium",
+      ish_confidence == "3: GISIS owner as ISH" & guo_confidence == "2: ISH used as GUO" ~ "Low",
+      TRUE ~ NA
+    ),
+    total_confidence = factor(total_confidence, levels = c("Low", "Medium", "High"))
+  )
+```
+
+On ajoute deux informations sur la propriété obtenues séparément : Altantic Shrimpers Ltd est possédé par le néerlandais Cornelis Vrolijk et HISEPEC est la propriété de l'espagnol PEIRERA GROUP.
+
+```{r}
+# Adding info about Atlantic Shrimpers and HISEPEC
+mapping <- tibble(
+  guo_name_pattern = c("ATLANTIC SHRIMPERS LTD", "HISEPEC"),
+  new_guo_name = c("CORNELIS VROLIJK HOLDING B.V.", "PEREIRA GROUP"),
+  new_iso3 = c("NLD", "ESP"),
+) |> 
+  mutate(new_guo_confidence = "A vérifier")
+
+ownership <- ownership |> 
+  rowwise() |> 
+  mutate(
+    matched = mapping |> 
+      filter(str_detect(guo_name, guo_name_pattern)) |> 
+      slice(1) |> # In case of multiple matches, take the first
+      list(),
+    guo_name = ifelse(nrow(matched) > 0, matched[1,]$new_guo_name, guo_name),
+    guo_country_iso3 = ifelse(nrow(matched) > 0, matched[1,]$new_iso3, guo_country_iso3)
+  ) |> 
+  dplyr::select(-matched) |> 
+  ungroup()
+```
+
+On rattrape une erreur dans la base de données :
+
+```{r}
+ownership <- ownership |> 
+  mutate(imo = case_when(
+    mmsi == 657216600 ~ 8778005,   # fixing a mistake
+    TRUE ~ imo
+  ))
+```
+
+On renomme la variable du numéro IMO pour plus de clarté :
+
+```{r}
+ownership <- ownership |> 
+  rename(assigned_imo = imo)
+```
+
+Sauvegarde pour utilisation autre :
+
+```{r}
+write.xlsx(ownership,
+           "output/data/ownership/ownership_data_FAO34_2025-04_GFW_effort_2020-2024.xlsx",
+           as.table = TRUE)
+```
+
+```{r}
+rm(list = c("effort", "vessels"))
+rm(list = ls()[grepl("imo|table|orbis|matches|owners_list|mapping", ls())])
+```
+
+### Jointure avec les données d'effort de pêche
+
+```{r}
+join_ownership <- function(gfw_ds,
+                           ownership_data,
+                           key = c("vessel_id", "mmsi"),
+                           keep_ambiguous_imos = FALSE) {
+  
+  key <- match.arg(key)
+  
+  if (!keep_ambiguous_imos) {
+    ownership_data <- ownership_data |> 
+      mutate(across(
+        ish_name:total_confidence,
+        ~ ifelse(imo_confidence_code == 4, NA, .)
+      ))
+  }
+  
+  gfw_ds$clean_effort <- gfw_ds$clean_effort |> 
+    left_join(ownership_data,
+              by = key,
+              relationship = "many-to-one")
+  
+  if (!is.null(gfw_ds$small_efforts)) {
+    gfw_ds$small_efforts <- gfw_ds$small_efforts |> 
+      left_join(ownership_data,
+                by = key,
+                relationship = "many-to-one")
+  }
+  
+  return(gfw_ds)
+}
+
+gfw_ds_ML <- readRDS("output/clean_data/_temp/gfw_effort_FAO34_ML_0.rds")
+gfw_ds_YH <- readRDS("output/clean_data/_temp/gfw_effort_FAO34_YH_0.rds")
+
+ownership_by_vessel_id <- ownership |> 
+  dplyr::select(-c(mmsi, vessel_name)) |> 
+  distinct()
+
+gfw_ds_ML <- join_ownership(gfw_ds = gfw_ds_ML, 
+                            ownership_data = ownership_by_vessel_id,
+                            key = "vessel_id")
+gfw_ds_YH <- join_ownership(gfw_ds = gfw_ds_YH,
+                            ownership_data = ownership_by_vessel_id,
+                            key = "vessel_id")
+
+# MONTHLY LOW is save as a final dataset
+if (!file.exists("output/clean_data/apparent_fishing_effort.rds") | FORCE_WRITE) {
+  saveRDS(gfw_ds_ML, "output/clean_data/apparent_fishing_effort.rds")
+}
+# YEARLY HIGH is save as temporary since it will be further transformed
+if (!file.exists("output/clean_data/_temp/gfw_effort_FAO34_YH_1.rds") | FORCE_WRITE) {
+  saveRDS(gfw_ds_YH, "output/clean_data/_temp/gfw_effort_FAO34_YH_1.rds")
+}
+```
+
+```{r}
+#| include: false
+
+rm(list = setdiff(ls()[grepl("gfw", ls())], lsf.str()))
+gc()
+```
+
+## Captures reconstruites et évaluations
+
+### Captures reconstruites du Sea Around Us
+
+On assembles les jeux de données de captures reconstruites du Sea Around Us (Lien : <https://www.seaaroundus.org>). Ces données correspondent aux captures spatialisées du Sea Around Us contenues dans 3 polygones : la zone FAO n°34, le LME du courant des Canaries (LME n°27) et le LME du courant de Guinée (LME n°28).
+
+Puisque les LME sont presque entièrement inscrits dans la zone FAO, on déduit les captures des LME de celles de la zone FAO. Ceci donne les captures en haute mer, par opposition aux captures des LMEs, qui recouvrent l'essentiel des ZEE et la totalité du plateau continental de la région.
+
+Puisque les LME ne sont pas entièrement inscrits dans la zone FAO (en particulier le LME n°28), on ne conserve que les valeurs positives ou nulles pour la haute mer.
+
+```{r}
+
+# Helper function (the csv downloaded from the website contained missing ',' when the last column in NA)
+
+fix_csv_trailing_missing_field <- function(input_csv, output_csv, expected_cols = 15) {
+  lines <- read_lines(input_csv)
+  
+  # Store header and data separately
+  header <- lines[1]
+  data_lines <- lines[-1]
+  
+  # Define expected number of columns from header
+  expected_cols <- str_count(header, ",") + 1
+  
+  fixed_data_lines <- vapply(data_lines, function(line) {
+    # Split on commas outside quotes
+    fields <- strsplit(line, ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", perl = TRUE)[[1]]
+    
+    if (length(fields) == expected_cols - 1) {
+      # Insert empty field as last column (landed_value missing)
+      fields <- c(fields, "")
+    }
+    
+    paste(fields, collapse = ",")
+  }, FUN.VALUE = character(1))
+  
+  # Write back with original header
+  write_lines(c(header, fixed_data_lines), output_csv)
+  
+  message("CSV fixed and saved to: ", output_csv)
+  
+  invisible(TRUE)
+}
+
+# Fix missing comma issue
+
+files <- c(
+  "data/catch/reconstructed_catch/SAU FAO 34 v50-1/SAU FAO 34 v50-1",
+  "data/catch/reconstructed_catch/SAU LME 27 v50-1/SAU LME 27 v50-1",
+  "data/catch/reconstructed_catch/SAU LME 28 v50-1/SAU LME 28 v50-1"
+  )
+
+if (!file.exists("data/catch/reconstructed_catch/SAU FAO 34 v50-1/SAU FAO 34 v50-1_fixed.csv") | FORCE_WRITE) {
+  sapply(files, 
+       function(f) {
+         fix_csv_trailing_missing_field(
+           input_csv = paste0(f, ".csv"), 
+           output_csv = paste0(f, "_fixed.csv")
+         )
+       }
+  )
+}
+
+
+# Load fixed data
+
+catch_tot <- read_csv("data/catch/reconstructed_catch/SAU FAO 34 v50-1/SAU FAO 34 v50-1_fixed.csv") |> clean_names()
+catch_lme27 <- read_csv("data/catch/reconstructed_catch/SAU LME 27 v50-1/SAU LME 27 v50-1_fixed.csv") |> clean_names()
+catch_lme28 <- read_csv("data/catch/reconstructed_catch/SAU LME 28 v50-1/SAU LME 28 v50-1_fixed.csv") |> clean_names()
+
+catch_lme <- catch_lme27 |> 
+  mutate(area_name = "LME 27") |> 
+  rbind(catch_lme28 |> 
+          mutate(area_name = "LME 28"))
+
+cols <- colnames(catch_lme)
+n <- length(cols)
+cols <- cols[-c(1, n - 1, n)]
+
+catch_lme_tot <- catch_lme |> 
+  summarize(
+    tonnes = sum(tonnes, na.rm = TRUE),
+    landed_value = sum(landed_value, na.rm = TRUE),
+    .by = all_of(cols)
+  )
+
+cols <- cols[-1]
+
+catch_high_seas <- catch_tot |>
+  left_join(
+    catch_lme_tot |> dplyr::select(-area_type),
+    by = cols
+  ) |> 
+  mutate(
+    tonnes = pmax(tonnes.x - tonnes.y, 0),                      # In some cases the catch is higher in the LMEs than in the whole FAO 34.
+    landed_value = pmax(landed_value.x - landed_value.y, 0)     # Prob. bc LME 28 isn't fully contained in FAO 34.
+  ) |> 
+  dplyr::select(-c(tonnes.x, tonnes.y, landed_value.x, landed_value.y)) |> 
+  mutate(area_name = "FAO 34 - {LMEs}")
+
+catch <- rbind(
+  catch_lme,
+  catch_high_seas
+)
+
+rm(list = c("catch_high_seas", "catch_lme", "catch_lme_tot", "catch_lme27", "catch_lme28", "catch_tot", "cols", "files", "n"))
+```
+
+On ne conserve que les captures associées à la pêche industrielle pour la période 2014-2019 :
+
+```{r}
+catch <- catch |> 
+  filter(fishing_sector == "Industrial") |> 
+  filter(year >= 2015, year <= 2019)
+```
+
+### Jointure avec les évaluations du COPACE et de la CICTA
+
+On charge les données d'évaluations issues des rapports du groupe d'experts FAO-COPACE (`cecaf`) et de la Commission internationale pour la conservation des thonidés de l'Atlantique (CICTA; `iccat`). Les données du COPACE viennent des rapports des sous-groupes nord et sud, pour les petits pélagiques d'une part et pour les espèces démersales d'autre part. Lorsque plusieurs stocks sont contenus dans la région d'un même sous-groupe, on les agrège en un seul. Le statut de l'évaluation pour ce "super-stock" est hérité des stocks réels : si tous les stocks ont le même statut, celui-ci est repris; sinon on garde le statut associé au stock avec le plus de captures déclarées à la FAO l'année de l'évaluation. Dans le second cas le statut est précédé du mot "Principalement".
+
+```{r}
+cecaf <- read.xlsx("data/iccat_cecaf_stock_evaluations.xlsx", sheet = "cecaf_clean")  |> clean_names()
+iccat <- read.xlsx("data/iccat_cecaf_stock_evaluations.xlsx", sheet = "iccat_clean") |> clean_names()
+```
+
+On joint les données d'évaluation aux données de captures. Puisque les régions des sous-groupes du COPACE correspondent presque parfaitement aux LME n°27 (sous-groupe nord) et 28 (sous-groupe sud), on joint les captures d'un LME aux évaluations du sous-groupe correspondant. On utilise le nom scientifique des espèces comme clé de jointure.
+
+Dans le cas des évalutions du COPACE, il arrive qu'un stock ne soit pas défini au niveau spécifique, mais plutôt au niveau du genre (ex : *Sepia spp.*) ou de la famille (ex : *Sparidae*). Il arrive même qu'un stock soit défini pour une espèce (ex: *Penaeus notialis* du sous-groupe sud) et qu'un autre soit défini pour le genre de cette espèce, dans la mêmel sous-région (*Penaeus spp.* au sud).
+
+Les captures du Sea Around Us sont aussi définies à des niveaux taxonomiques variables. Pour leur attribuer des évaluations du COPACE, on procède de la façon suivante :
+
+Pour chaque couple LME - sous-groupe COPACE :
+
+1.  On effectue une première jointure sur le nom scientifique complet (`exact_match`)
+2.  On effectue une jointure des captures *restantes* sur la première partie du nom (`higer_level_match`). En plus des captures définies au niveau du genre, les captures définies au niveau spécifiques mais non associées dans `exact_match` peuvent être associées.
+3.  On fait l'union de ces tables
+
+Pour les évaluations de la CICTA, les stocks sont toujours définies au niveau spécifique. On joint uniquement sur le nom scientifique complet.
+
+```{r}
+
+match_cecaf_assessment <- function(sau_catch, cecaf){
+  
+  # Prepare catch data by separating the taxonomic levels
+  
+  catch <- catch |> 
+    separate(
+      scientific_name,
+      into = c("catch_taxa_higher", "catch_taxa_lower"),
+      sep = " ",
+      remove = FALSE
+    )
+
+  # Match to CECAF assessments (although only valid for recent years)
+  
+  cecaf_mod <- cecaf |> 
+    dplyr::select(species, cecaf_subregion, assessment_fr, assessment_level) |> 
+    separate(
+      species,
+      into = c("eval_taxa_higher", "eval_taxa_lower"),
+      sep = " ",
+      remove = FALSE
+    ) |> 
+    mutate(
+      eval_lme = case_when(
+        cecaf_subregion == "North-Western Africa" ~ "LME 27",
+        cecaf_subregion == "South" ~ "LME 28"
+      )
+    ) |> 
+    rename(
+      cecaf_assessment_fr = assessment_fr, 
+      cecaf_assessment_level = assessment_level
+    )
+  
+  # Join by exact match
+  exact_match <- catch |> 
+    left_join(
+      cecaf_mod,
+      by = c("catch_taxa_higher" = "eval_taxa_higher", "catch_taxa_lower" = "eval_taxa_lower"),
+      relationship = "many-to-many"                             # many-to-many bc. northern and southern stocks are present in evaluation
+    ) |> 
+    filter(area_name == eval_lme)                               # here we filter so that eventually we have a many-to-one
+  
+  # Join the remainder by higher-level match (catch at species, CECAF at genus level)
+  no_exact_match <- setdiff(
+    catch,
+    exact_match[, colnames(catch)]
+  )
+  
+  higher_level_match <- no_exact_match |> 
+    left_join(
+      cecaf_mod |> filter(is.na(eval_taxa_lower) | eval_taxa_lower %in% c("sp.", "spp.")),
+      by = c("catch_taxa_higher" = "eval_taxa_higher"),
+      relationship = "many-to-many"                            
+    ) |> 
+    filter(area_name == eval_lme)
+  
+  # Combine both
+  cecaf_match <- bind_rows(exact_match, higher_level_match)
+  
+  no_cecaf_match <- setdiff(
+    catch,
+    cecaf_match[, colnames(catch)]
+  )
+  
+  catch <- bind_rows(cecaf_match, no_cecaf_match) |> 
+    dplyr::select(-c(species, eval_taxa_lower, cecaf_subregion, eval_lme, catch_taxa_higher, catch_taxa_lower))
+  
+  # Return result
+  return(catch)
+}
+
+
+match_iccat_assessment <- function(sau_catch, iccat) {
+  
+  # Prepare catch data by separating the taxonomic levels
+  
+  catch <- catch |> 
+    separate(
+      scientific_name,
+      into = c("catch_taxa_higher", "catch_taxa_lower"),
+      sep = " ",
+      remove = FALSE
+    )
+  
+  # Match to ICCAT assessments (although only valid for recent year)
+  
+  iccat_mod <- iccat |> 
+    dplyr::select(species, overfishing, overfished) |> 
+    separate(
+      species,
+      into = c("eval_taxa_higher", "eval_taxa_lower"),
+      sep = " ",
+      remove = FALSE
+    )
+  
+  # Join by exact match
+  catch <- catch |> 
+    left_join(
+      iccat_mod,
+      by = c("catch_taxa_higher" = "eval_taxa_higher", "catch_taxa_lower" = "eval_taxa_lower"),
+      relationship = "many-to-one"
+    ) |> 
+    dplyr::select(-c(species, catch_taxa_higher, catch_taxa_lower))
+  
+  # No higher level match bc. all assessments are at the species level
+  # /!\ Note: We cannot state the level of (over-)exploitation when the catch is less precise taxonomically than the assessments
+  
+  return(catch)
+
+}
+
+catch <- match_cecaf_assessment(catch, cecaf)
+catch <- match_iccat_assessment(catch, iccat)
+```
+
+Les captures pour lesquelles le niveau taxonomique est moins précis que celui employé par les groupes d'experts ne sont pas associées. On leur associe le label "Match impossible" pour faire la différence entre l'incertitude liée à la reconstruction et l'absence d'évaluation.
+
+Les taxons contenant "not identified" dans leur nom sont directement catégorisés comme matchs impossibles. Pour les captures des taxons en "un seul mot", i.e. identifiés à un niveau plus haut que l'espèce, on assigne la catégories "Match impossible" si le taxon capturé est contenu dans la lignée du taxon évalué, et "Non évalué" sinon.
+
+```{r}
+
+if (!SKIP_CATCH) {
+  clean_taxon_name <- function(name) {
+    str_replace(name, "^([A-Za-z]+)\\s+(sp\\.|spp\\.)$", "\\1")
+  }
+  
+  get_lineage <- function(name) {
+    
+    name <- clean_taxon_name(name)
+    
+    # Get AphiaID
+    id <- tryCatch(wm_records_name(name)$AphiaID[1], error = function(e) NA)
+  
+    # If either ID is missing, return NA
+    if (is.na(id)) return(NA)
+  
+    # Get classification of B
+    lineage <- tryCatch(wm_classification(id), error = function(e) NA)
+    if (is.data.frame(lineage)) {
+      return(paste(lineage$scientificname, collapse = "/"))
+    } else {
+      return(NA)
+    }
+  }
+  
+  # Immediate impossible matches : taxa not identified
+  
+  immediate_impossible_matches <- catch |> 
+    filter(grepl("not identified", scientific_name)) |> 
+    mutate(impossible_match = TRUE) |> 
+    distinct(scientific_name, area_name, impossible_match)
+  
+  # Potential : taxa identified but not matched, possibly because of coarse taxonomic resolution
+  
+  potential_impossible_matches <- catch |>
+    filter(!grepl("not identified", scientific_name)) |> 
+    filter(is.na(cecaf_assessment_fr) & is.na(overfishing) & is.na(overfished)) |> 
+    distinct(scientific_name, area_name)
+  
+  # Extract lineages from assessment scientific names
+  
+  cecaf_w_lineage <- cecaf |>
+    filter(!is.na(species)) |> 
+    rowwise() |> 
+    mutate(lineage = get_lineage(species)) |> 
+    ungroup()
+  
+  iccat_w_lineage <- iccat |> 
+    rowwise() |> 
+    mutate(lineage = get_lineage(species)) |> 
+    ungroup()
+  
+  # Find impossible matches for CECAF species (by LME-subgroup)
+  
+  impossible_matches_cecaf_north <- potential_impossible_matches |> 
+    filter(area_name == "LME 28") |> 
+    cross_join(cecaf_w_lineage |> 
+                 filter(cecaf_subregion == "North-Western Africa") |>
+                 dplyr::select(lineage)) |> 
+    rowwise() |> 
+    mutate(
+      impossible_match = grepl(scientific_name, lineage)
+    ) |> 
+    ungroup() |> 
+    filter(impossible_match) |> 
+    distinct(scientific_name, area_name, impossible_match)
+  
+  impossible_matches_cecaf_south <- potential_impossible_matches |> 
+    filter(area_name == "LME 27") |> 
+    cross_join(cecaf_w_lineage |> 
+                 filter(cecaf_subregion == "South") |>
+                 dplyr::select(lineage)) |> 
+    rowwise() |> 
+    mutate(
+      impossible_match = grepl(scientific_name, lineage)
+    ) |> 
+    ungroup() |> 
+    filter(impossible_match) |> 
+    distinct(scientific_name, area_name, impossible_match)
+  
+  # Find impossible matches for ICCAT species
+  
+  impossible_matches_iccat <- potential_impossible_matches |> 
+    cross_join(iccat_w_lineage |> 
+                 dplyr::select(lineage)) |> 
+    rowwise() |> 
+    mutate(
+      impossible_match = grepl(scientific_name, lineage) 
+    ) |> 
+    ungroup() |> 
+    filter(impossible_match) |> 
+    distinct(scientific_name, area_name, impossible_match)
+  
+  # Bind the impossible matches
+  
+  impossible_matches <- bind_rows(
+    immediate_impossible_matches,
+    impossible_matches_cecaf_north,
+    impossible_matches_cecaf_south,
+    impossible_matches_iccat
+  ) |> 
+    distinct() # Some high taxonomic levels might be shared between ICCAT and CECAF species
+  
+  catch <- catch |> 
+    left_join(
+      impossible_matches,
+      by = c("scientific_name", "area_name"),
+      relationship == "many-to-one"
+    ) |> 
+    mutate(
+      impossible_match = ifelse(is.na(impossible_match), FALSE, TRUE)
+    )
+}
+```
+
+Enfin, on harmonise les évaluations officielles avec un label unique :
+
+```{r}
+
+if (!SKIP_CATCH) {
+  catch <- catch |> 
+    mutate(
+      official_status = case_when(
+        !is.na(cecaf_assessment_fr) ~ str_trim(cecaf_assessment_fr),
+        overfished == 1 & overfishing == 1 ~ "Surpêché et dégradé",
+        overfished == 1 ~ "Dégradé",
+        overfishing == 1 ~ "Surpêché",
+        overfished == 0 & overfishing == 0 ~ "Ni dégradé ni surpêché",
+        impossible_match ~ "Match impossible",
+        TRUE ~ "Non évalué"
+      ),
+      dim_assessment = case_when(
+        !is.na(cecaf_assessment_fr) ~ 1,
+        !is.na(overfished) | !is.na(overfishing) ~ 2,
+        TRUE ~ 0
+      ),
+      official_status = factor(
+        official_status,
+        levels = c("Ni dégradé ni surpêché",
+                   "Non pleinement exploité",
+                   "Principalement non pleinement exploité",
+                   "Pleinement exploité",
+                   "Principalement pleinement exploité",
+                   "Principalement surexploité",
+                   "Surpêché",
+                   "Dégradé",
+                   "Surpêché et dégradé",
+                   "Surexploité",
+                   "Principalement non évalué",
+                   "Non évalué",
+                   "Match impossible")
+      )
+    )
+}
+```
+
+On ajoute un label permettant de distinguer les stocks avec au moins un indicateur de surexploitation ("surexploité" ou "surpêché" ou "dégradé"), des stocks qui n'en ont pas. On conserve les labels "Non évalué" et "Match impossible".
+
+```{r}
+
+if (!SKIP_CATCH) {
+  catch <- catch |> 
+    mutate(
+      overexploitation_flag = case_when(
+        official_status %in% c("Surexploité", "Principalement surexploité", "Dégradé", "Surpêché", "Surpêché et dégradé") ~ "Surexploitation probable",
+        official_status %in% c("Ni dégradé ni surpêché", "Non pleinement exploité", "Principalement non pleinement exploité", "Pleinement exploité", "Principalement pleinement exploité") ~  "Non surexploitation probable",
+        official_status %in% c("Non évalué", "Principalement non évalué") ~  "Evaluations lacunaires",
+        official_status == "Match impossible" ~ "Match impossible"
+      )
+    )
+}
+```
+
+### Sauvegarde
+
+```{r}
+if (!SKIP_CATCH) {saveRDS(catch, "output/clean_data/catch.rds")}
+```
+
+```{r}
+rm(list = ls()[grepl("impossible|cecaf|iccat|catch", ls())])
+gc()
+```
+
+## Effort apparent des chaluts de fonds Global Fishing Watch
+
+On charge des données non publiées fournies par Global Fishing Watch. Il s'agit de l'effort de pêche de la flotte mondiale de chalutier visibles par AIS de 2020 à 2023. Peu importe le navire, chaque observation de temps de pêche est catégorisée en "chalutage de fond", "chalutage pélagique" ou "autre". La résolution spatiale est de 0.1°x0.1° et la résolution temporelle est d'un mois.
+
+```{r}
+#| include: false
+trawling_files <- c(list.files(path = "data/raw_gfw_trawling_effort/12424720-19d4-11f0-beb1-9d682effc649", pattern = "\\.csv$", full.names = TRUE),
+                   list.files(path = "data/raw_gfw_trawling_effort/f18b56c0-19d3-11f0-9018-5df6c30331c3", pattern = "\\.csv$", full.names = TRUE))
+
+raw_bottom_trawling <- lapply(trawling_files, read_csv) |> 
+  bind_rows()
+```
+
+### Premier nettoyage
+
+En raisons des moins bonnes performances du modèle sur la classe "chalutage pélagique" on ne conserve que les observations de chalutage de fond.
+
+```{r}
+bottom_trawling <- raw_bottom_trawling |> 
+  filter(label == "bottom_trawling")
+```
+
+On applique un filtre spatial sur les données afin de ne garder que l'effort fourni dans la zone FAO n°34.
+
+```{r}
+# First filter based on bounding box (faster)
+bbox <- st_bbox(fao34_sf)
+
+bottom_trawling <- bottom_trawling |> 
+  filter(
+    cell_ll_lon >= bbox["xmin"] & cell_ll_lon <= bbox["xmax"],
+    cell_ll_lat >= bbox["ymin"] & cell_ll_lon <= bbox["ymax"]
+  )
+
+bottom_trawling <- bottom_trawling |> 
+  st_as_sf(coords = c("cell_ll_lon","cell_ll_lat"), remove = FALSE, crs = st_crs(4326))
+
+# Then based on the FAO 34 limits
+bottom_trawling <- bottom_trawling |> 
+  st_filter(fao34_sf) |> 
+  st_drop_geometry()
+```
+
+On renomme les colonnes pour obtenir des données similaires aux données d'effort de pêche apparent traitées précédemment.
+
+```{r}
+bottom_trawling <- bottom_trawling |> 
+  rename(
+    lat = cell_ll_lat, 
+    lon = cell_ll_lon,
+    apparent_fishing_hours = fishing_hours,
+  ) |> 
+  mutate(
+    time_range = paste(year, month, sep = "-")
+  ) |>
+  dplyr::select(-c(month, n_mmsi, n_events)) |> 
+  relocate(
+    lat, 
+    lon,
+    year,
+    time_range,
+    year,
+    flag,
+    mmsi,
+    label,
+    apparent_fishing_hours,
+    distance_trawled_km)
+```
+
+Le nettoyage est similaire à celui des données d'effort de pêche apparent Global Fishing Watch. Il est légèrement plus simple puisque les données de chalutage ne contiennent pas d'attribut `gear_type`, ni de numéro IMO, nom de navire ou call sign.
+
+```{r}
+bottom_trawling <- bottom_trawling |> 
+  spatial_join_gfw_data() |> 
+  add_political_labels() |> 
+  add_vessel_characteristics() |>
+  mutate(kWh = engine_power_kw_gfw * apparent_fishing_hours) |> 
+  dplyr::select(-label) |> 
+  relocate(
+    year, time_range,
+    lat, lon,
+    region_type, region_type_fr,
+    eez_name, eez_iso3c,
+    flag, flag_iso3c,
+    mmsi,
+    apparent_fishing_hours, distance_trawled_km, kWh,
+    #is_european_flag, 
+    is_fao34_flag, is_west_african_flag,
+    domestic, origin_type_fr, destination_type_fr,
+    length_m_gfw, engine_power_kw_gfw, tonnage_gt_gfw,
+    distance_to_shore_km, distance_from_port_km, bathymetry_m,
+  )
+```
+
+On termine par ne conserver que l'effort satisfaisant les seuils `min_dist` et `min_hours`, comme pour l'effort de pêche apparent Global Fishing Watch.
+
+```{r}
+bottom_trawling_ds <- clean_gfw_data(
+  bottom_trawling,
+  min_dist = 5,
+  min_hours = 2000,
+  unit = "mmsi",
+  save_small_efforts = TRUE
+)
+```
+
+### Jointure avec les données de propriété
+
+```{r}
+ownership_by_mmsi <- ownership |> 
+  dplyr::select(-c(vessel_id, vessel_name)) |> 
+  filter(imo_confidence_code != 4) |> # Remove IMOs with poor confidence
+  dplyr::select(-contains("confidence")) |> 
+  distinct()
+
+bottom_trawling_ds <- join_ownership(
+  gfw_ds = bottom_trawling_ds,
+  ownership_data = ownership_by_mmsi,
+  key = "mmsi",
+  keep_ambiguous_imos = TRUE # Poor confidence IMOs have already been removed
+)
+```
+
+### Largeur de l'équipement en contact avec le sol
+
+On s'appuye sur les travaux d'Eigaard et al. (2016) qui modélise la largeur d'ouverture des chaluts de fonds en fonction des caractéristiques des navires.
+
+Les modèles d'Eigaard et al. sont ajustés par "métiers BENTHIS". Ces catégories sont crées en combinant l'engin (ex: chalut à panneaux, à perche, senne démersale), et les catégories d'espèces ciblées (ex : crustacés, poissons démersaux).
+
+```{r}
+
+eigaard <- read_csv("data/eigaard/BENTHIS_otter_trawl_data.csv") |> clean_names()
+
+# library(ggplot2)
+# 
+# eigaard |> 
+#   filter(!is.na(door_spread)) |> 
+#   ggplot(aes(x = door_spread)) +
+#   geom_histogram()
+```
+
+En l'absence d'informations précises on fait deux hypothèses. On suppose d'abord que la totalité des chaluts de fonds employés dans la zone FAO n°34 sont des chaluts à panneaux. De plus, on assigne à tous les chalutiers le métier "OT_MIX". C'est la catégorie la plus large en terme d'espèces ciblées.
+
+Q : On sait que la flotte appartenant à Atlantic Shrimpers Ltd est composée exclusivement de chaluts à panneaux visant la crevette. Il serait envisageable d'adapter le métier BENTHIS pour cette flotte, en choisissant plutôt OT_CRU, OT_MIX_CRU ou OT_MIX_CRU_DMF. Sans pouvoir choisir entre ces catégories pour l'instant, on conserve OT_MIX pour l'ensemble des chalutiers.
+
+On peut alors calculer la surface balayée par observation de chalutage de fond.
+
+Pour estimer une empreinte spatiale conservative du chalutage de fond, on assigne aussi une ouverture conservative entre les panneaux de 25 m.
+
+```{r}
+
+add_bottom_impact <- function(bottom_trawling_data) {
+  
+  bottom_trawling_data |> 
+    filter(!is.na(engine_power_kw_gfw)) |> 
+    mutate(
+      gear_width_model = "OTB_MIX",
+      model_a = 10.6608,
+      model_b =  0.2921,
+      std_error_a = 6.6939,
+      std_error_b = 0.1044,
+      gear_width_m = model_a * (engine_power_kw_gfw ^ model_b),
+      gear_width_minimal_m = 25
+    ) |> 
+    mutate(
+      swept_area_km2 = gear_width_m * 1e-3 * distance_trawled_km
+    )
+
+}
+
+bottom_trawling_ds$clean_effort <- bottom_trawling_ds$clean_effort |> add_bottom_impact()
+bottom_trawling_ds$small_efforts <- bottom_trawling_ds$small_efforts |> add_bottom_impact()
+```
+
+Afin de pouvoir comparer la surface chalutée dans une cellule à la surface de la cellule, on calcule celle-ci. En effet la surface d'une cellule aux dimensions définies en degrés varie entre autre avec la latitude. On utilise le package R `geosphere`.
+
+```{r}
+library(geosphere)
+
+compute_cell_area <- function(lat, lon, height_degree = 0.1, width_degree = 0.1) {
+
+  dlat <- height_degree / 2
+  dlon <- width_degree / 2
+  
+  # Define corners
+  p1 <- c(lon - dlon, lat - dlat)  # lower left
+  p2 <- c(lon + dlon, lat - dlat)  # lower right
+  p3 <- c(lon + dlon, lat + dlat)  # upper right
+  p4 <- c(lon - dlon, lat + dlat)  # upper left
+  
+  # Build polygon
+  cell <- rbind(p1, p2, p3, p4, p1)
+  
+  # Compute area in m2 and convert to km2
+  area_km2 <- geosphere::areaPolygon(cell) / 1e6
+  
+  return(area_km2)
+}
+
+bottom_trawling_ds$clean_effort <- bottom_trawling_ds$clean_effort |> 
+  rowwise() |> 
+  mutate(cell_area_km2 = compute_cell_area(lat, lon)) |> 
+  ungroup()
+
+bottom_trawling_ds$small_efforts <- bottom_trawling_ds$small_efforts |> 
+  rowwise() |> 
+  mutate(cell_area_km2 = compute_cell_area(lat, lon)) |> 
+  ungroup()
+```
+
+### Construction d'une grille au dessus du plateau continentale
+
+Afin de pouvoir calculer les statistiques de l'empreinte spatiale - notamment les proportions des surfaces - on crée une grille complète au dessus du plateau continental (approximé comme les zones de bathymétrie \>= 1000 m).
+
+```{r}
+#| include: false
+
+# Creating the grid
+bbox <- st_bbox(fao34_sf)
+
+lats <- seq(ceiling(bbox["ymin"] * 10) / 10, floor(bbox["ymax"] * 10) / 10, by = 0.1)
+lons <- seq(ceiling(bbox["xmin"] * 10) / 10, floor(bbox["xmax"] * 10) / 10, by = 0.1)
+
+grid_centers <- expand.grid(lon = lons, lat = lats) |> 
+  mutate(lat = round(lat, 1), lon = round(lon, 1))
+
+grid <- st_as_sf(grid_centers, coords = c("lon", "lat"), crs = st_crs(fao34_sf), remove = FALSE)
+grid <- grid[st_within(grid, fao34_sf, sparse = FALSE)[,1], ]
+
+# Extracting bathymetry
+grid$bathymetry_m <- raster::extract(bathymetry_raster, grid)
+
+# Adding EEZ name etc
+grid <- grid |> spatial_join_gfw_data()
+
+# Filtering grid to keep shelf
+shelf_grid <- grid |> 
+  filter(
+    bathymetry_m >= -1000, 
+    bathymetry_m <= 0,
+    distance_to_shore_km >= 1,
+    !is.na(eez_iso3c)
+  )
+
+# Adding cell area
+shelf_grid <- shelf_grid |> 
+  st_drop_geometry() |> 
+  rowwise() |> 
+  mutate(cell_area_km2 = compute_cell_area(lat, lon)) |> 
+  ungroup()
+
+# Add to bottom trawling dataset
+bottom_trawling_ds$shelf_grid <- shelf_grid
+```
+
+### Sauvegarde
+
+```{r}
+saveRDS(bottom_trawling_ds, "output/clean_data/bottom_trawling.rds")
+```
+
+```{r}
+#| include: false
+
+rm(list = ls()[grepl("bottom|ownership|vessel", ls())])
+gc()
+```
+
+## Pêche proche des côtes
+
+On ajoute des labels caractérisant la pêche dans des zones proches des côtes (bandes des 12 milles ou zones de restrictions). Ces labels sont ajoutés aux jeu de donnée d'effort de pêche à haute résolution spatiale.
+
+```{r}
+
+inshore_fishing_ds <- readRDS("output/clean_data/_temp/gfw_effort_FAO34_YH_1.rds")
+
+# Restricted inshore areas
+restricted <- read.xlsx("data/inshore_restricted_areas_FAO34.xlsx", sheet = "clean") |> 
+  mutate(
+    total_km = 1.852 * total_nm,
+    partial_km = 1.852 * partial_nm
+  ) |> 
+  filter(!(eez_iso3c %in% c("ESP", "PRT", "SHN", "BRA"))) |>      # Keep only west african countries
+  mutate(
+    total_km = ifelse(is.na(total_km), 0, total_km),
+    partial_km = ifelse(is.na(partial_km), 0, partial_km),
+    total_nm = ifelse(is.na(total_nm), 0, total_nm),
+    partial_nm = ifelse(is.na(partial_nm), 0, partial_nm),
+  )
+
+# Saving the restricted zones in the dataset
+inshore_fishing_ds$restricted_areas <- restricted
+
+# Flagging fishing observations
+inshore_fishing_ds$clean_effort <- inshore_fishing_ds$clean_effort |> 
+  left_join(restricted,
+            by = "eez_iso3c") |> 
+  mutate(
+    inn_fishing = case_when(
+      distance_to_shore_km < total_km ~ TRUE,
+      distance_to_shore_km < partial_km & !is.na(prohibited_flag) & !is.na(prohibited_gear_type) & !domestic & gear_type == "Trawls" ~ TRUE,
+      distance_to_shore_km < partial_km & !is.na(prohibited_flag) & !domestic ~ TRUE,
+      TRUE ~ FALSE
+    ),
+    domestic_guo = (guo_country_iso3 == eez_iso3c) | (eez_iso3c == "ESH") & (guo_country_iso3 == "MAR"),
+    would_be_inn = case_when(
+      is.na(domestic_guo) ~ NA,
+      distance_to_shore_km < total_km ~ TRUE,
+      distance_to_shore_km < partial_km & !is.na(prohibited_flag) & !is.na(prohibited_gear_type) & !domestic_guo & gear_type == "Trawls" ~ TRUE,
+      distance_to_shore_km < partial_km & !is.na(prohibited_flag) & !domestic_guo ~ TRUE,
+      TRUE ~ FALSE
+    ),
+    in_12nm = (distance_to_shore_km < 12 * 1.852)
+  )
+```
+
+On crée un sous-ensemble sans les eaux internationales et contenant uniquement l'effort des chalutiers, moins lourd à charger.
+
+```{r}
+
+inshore_fishing_shelf <- inshore_fishing_ds$clean_effort |> 
+  filter(!is.na(eez_iso3c), gear_type == "Trawls")
+```
+
+### Sauvegarde
+
+```{r}
+saveRDS(inshore_fishing_ds, "output/clean_data/inshore_fishing.rds")
+saveRDS(inshore_fishing_shelf, "output/clean_data/inshore_fishing_eez_trawlers.rds")
+```

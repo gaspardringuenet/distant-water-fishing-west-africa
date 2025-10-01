@@ -1,0 +1,34 @@
+# OS / Editor junk
+.DS_Store
+.Rhistory
+.Rproj.user/
+*.Rproj
+*.swp
+*~
+
+# Quarto generated
+.quarto/
+_book/
+_freeze/
+*_files/
+*.log
+
+# Reports / Documents
+*.pdf
+*.docx
+*.html
+*.pptx
+~$*.docx   # temporary MS Word lock files
+~$*.pptx   # temporary PowerPoint lock files
+
+# Output folders
+output/
+report/
+presentations/
+
+# Data
+data/
+
+# Figures / tables
+figures/
+tables/

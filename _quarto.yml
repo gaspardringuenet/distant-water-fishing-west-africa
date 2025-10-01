@@ -1,0 +1,65 @@
+project:
+  type: book
+  output-dir: _book
+  execute-dir: project
+
+bibliography: report/references.bib 
+csl: report/deep-sea-research-part-i.csl 
+
+book:
+  title: "Pêche industrielle en Atlantique Centre-Est"
+  subtitle: "Structure, impact et responsabilité de la pêche distante"
+  author: "Gaspard Ringuenet"
+
+  chapters:
+    - index.qmd
+    - report/0-liste_symboles.qmd
+    - report/1-introduction.qmd
+    - report/2-materiels_et_methodes.qmd
+    - report/3-resultats.qmd
+    - report/4-refs.qmd
+  appendices:
+    - report/5-annexe.qmd
+
+language: 
+  toc-title-document: "Sommaire"
+  lof-title-document: "Liste des Figures"
+  lot-title-document: "Liste des Tables"
+
+format:
+  pdf:
+    documentclass: scrreprt
+    classoption: nottoc
+    toc: true
+    lof: true
+    lot: true
+    fontsize: 12pt
+    mainfont: Arial
+    link-citations: true
+    fig-pos: "H"
+    tbl-pos: "H"
+    geometry:
+      - inner=2.5cm
+      - outer=2.5cm
+      - top=2.5cm
+      - bottom=2.5cm
+      - headsep=10pt
+      - headheight=6pt
+      - footskip=33pt
+      - ignorehead
+      - ignorefoot
+      - heightrounded
+    include-in-header: 
+      text: |
+        \usepackage[french]{babel}
+        \usepackage{tocbibind}
+        \usepackage{float}
+        \usepackage{rotating}
+        \usepackage{caption}
+        
+        \renewcommand{\contentsname}{Sommaire}
+        \renewcommand{\listfigurename}{Liste des Figures}
+        \renewcommand{\listtablename}{Liste des Tables}
+        \captionsetup{font=footnotesize}
+execute:
+  freeze: auto
