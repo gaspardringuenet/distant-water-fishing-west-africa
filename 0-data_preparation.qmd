@@ -32,9 +32,13 @@ library(worrms)
 library(purrr)
 ```
 
-On détaille ici l'origine et la préparation des données utilisées dans les analyses du rapport.
+This notebook details the data sources used in our analysis, and performs data preparation processing steps.
 
-Deux hyper-paramètres pour contrôler la réécriture et le téléchargement des fichiers. Si `FORCE_WRITE = FALSE` alors certains fichiers lourds ne seront pas réécris (s'ils l'ont déjà été). De même `FORCE_DOWNLOAD_GFW` contrôle le re-téléchargement des données d'effort de pêche apparent Global Fishing Watch depuis l'API. `SKIP_CATCH` permet de passer la partie captures, indépendante du reste et chronophage.
+The following hyperparameters allow the user to control the downloading of external files and rewriting of local files:
+
+-   `FORCE_WRITE == FALSE` means that local files (outputs of this notebook) will not be rewritten if they already exist. They will be if the parameter is set to `TRUE`.
+-   `FORCE_DOWNLOAD_GFW` controls in a similar manner the re-downloading of Global Fishing Watch (GFW) data from the GFW API.
+-   `SKIP_CATCH` lets the notebook ignore the catch data processing, as it is time-consuming and independent from the rest.
 
 ```{r}
 FORCE_WRITE <- FALSE
@@ -42,11 +46,11 @@ FORCE_DOWNLOAD_GFW <- FALSE
 SKIP_CATCH <- TRUE
 ```
 
-## Polygones de référence
+## Reference polygons
 
-On utilise plusieurs polygones de référence :
+Several geo-referenced polygons are used:
 
--   Le contour de l'Atlantique Centre-Est (zone FAO n°34)
+-   The shape of the FAO major fishing area 34 (Atlantic, Eastern-Central)
 
 ```{r}
 #| label: load-fao34-sf
@@ -54,7 +58,7 @@ On utilise plusieurs polygones de référence :
 fao34_sf <- st_read("data/shapefiles/FAO_AREAS_CWP_NOCOASTLINE/FAO_AREAS_CWP_NOCOASTLINE.shp") |> filter(F_CODE == 34)
 ```
 
--   Les zones économiques exclusives qui intersectent la zone FAO n°34 et leur intersection avec celle-ci.
+-   Exclusive Economic Zones (EEZs) intersecting the FAO 34 area, and their intersection with the latter.
 
 ```{r}
 #| label: load-eez-sf
@@ -64,7 +68,7 @@ eez_overlap_sf <- eez_sf |>
   st_intersection(fao34_sf |> dplyr::select(geometry))
 ```
 
--   Les Large Marine Ecosystems (LME) du courant des Canaries et du courant de Guinée.
+-   Large Marine Ecosystems (LMEs) of the Canary Current and the Gulf of Guinea.
 
 ```{r}
 #| label: load-lme-sf
@@ -76,9 +80,9 @@ lme_sf <- st_read("data/shapefiles/lme-large-marine-ecosystems-main/polygons/shp
 
 ## Rasters
 
-### Raster de bathymétrie
+### Bathymetry raster
 
-Raster d'altitude globale en mètres disponible sur le site de Global Fishing Watch (Lien : ...). Résolution de ... degré. Source : ....
+Global altitude raster in meters, available on GFW's data portal ([link](https://globalfishingwatch.org/data-download/datasets/public-bathymetry-v1)). Source: General Bathymetric Chart of the Oceans (GEBCO).
 
 ```{r}
 #| label: load-bathymetry-raster
@@ -87,9 +91,9 @@ bathymetry_raster <- raster("data/bathymetry.tif")
 crs(bathymetry_raster) <- CRS("+proj=longlat +datum=WGS84 +no_defs")
 ```
 
-### Raster de distance à la côte
+### Distance to shore raster
 
-Raster de distance à la côte disponible sur le site de Global Fishing Watch (Lien : ...). Résolution de ... degré. Source : ...
+Global raster indicating distance from the closest shore for any point in the ocean. Available on GFW's data portal ([link](https://globalfishingwatch.org/data-download/datasets/public-distance-from-shore-v1)). Units: kilometers. Resolution: 1km. Source: *Pacific Islands Ocean Observing System's Distance to Nearest Coastline: 0.01-Degree Grid: Ocean dataset*.
 
 ```{r}
 #| label: load-dist-to-shore-raster
@@ -98,9 +102,9 @@ distance_to_shore_raster <- raster("data/distance-from-shore.tif")
 crs(distance_to_shore_raster) <- CRS("+proj=longlat +datum=WGS84 +no_defs")
 ```
 
-### Raster de distance au port
+### Distance from port raster
 
-Raster de distance au port de départ en kilomètres fourni par Global Fishing Watch avec une résolution de ... degré. Lien : ...
+In the context of industrial fisheries, this raster provides the distance from the closest port for any point in the ocean. This dataset is used to remove potentially erroneous fishing hours close to fishing ports. Available on GFW's data portal ([link](https://globalfishingwatch.org/data-download/datasets/public-distance-from-port-v1)). Units: meters. Resolution: 1 km. Source: The port distances are calculated using the [Global Fishing Watch Anchorages dataset](https://globalfishingwatch.org/datasets-and-code/anchorages/).
 
 ```{r}
 #| label: load-dist-from-port-raster
@@ -109,9 +113,9 @@ distance_from_port_raster <- raster("data/distance-from-port-v20201104.tiff")
 crs(distance_from_port_raster) <- CRS("+proj=longlat +datum=WGS84 +no_defs")
 ```
 
-## Caractéristiques de la flotte visible par AIS
+## Vessel characteristics of the global apparent fishing fleet
 
-Taille (*Length Overal All - LOA*), puissance maximale du moteur (kW) et tonnage brute (GT) issus de registres ou estimés par le classifieur de trajectoires de Global Fishing Watch pour l'ensemble des numéros MMSI de la flotte de pêche mondiale visible par AIS, de 2012 à 2024. La clé primaire est le couple année x MMSI. Lien : <https://globalfishingwatch.org/data-download/datasets/public-fishing-effort> .
+Length over all (LOA, in meters), maximum engine power (in kW) and gross tonnage (GT, in GT), either drawn from vessel registers or estimated using GFW's fishing tracks neural network, for each MMSI number in the global apparent fishing fleet from 2012 to 2024. Primary key is the (year x MMSI) pair. [Link](https://globalfishingwatch.org/data-download/datasets/public-fishing-effort).
 
 ```{r}
 #| label: load-vessels-info
@@ -119,11 +123,11 @@ Taille (*Length Overal All - LOA*), puissance maximale du moteur (kW) et tonnage
 vessels_info <- read_csv("data/vessel_info_gfw/fishing-vessels-v3.csv")
 ```
 
-## Effort de pêche apparent Global Fishing Watch
+## Apparent fishing effort
 
-### Téléchargement de l'effort contenu dans le polygone de la zone FAO n°34
+### Downloading the fishing effort within the FAO 34 area
 
-Les données d'effort de pêche apparent sont téléchargées à l'aide du package R *gfwr* pour une période de 5 ans : du 1^er^ janvier 2020 au 31 décembre 2024. On utilise la fonction `get_raster` pour importer l'effort des cellules incluses dans le polygone de la zone FAO n°34. L'unité de flotte utilisée est l'identifiant Global Fishing Watch, ou `vessel_id`, qui agrège les trajectoires correspondant au même navires de façon conservatrice.
+Apparent fishing effort data spanning a 5-year period (2020-01-01 to 2024-12-31) were downloaded using the *gfwr* R package. We used the `get_raster` function to import the fishing hours of cells contained within the FOA 34 area polygon. The GFW identifier in this dataset is the `vessel_id` variable, produced by the aggregation of track belonging to the same vessel using conservative criteria.
 
 ```{r}
 #| label: gfw-import-fun
@@ -141,9 +145,10 @@ gfw_import <- function(year, spatial_resolution, temporal_resolution, region, re
 }
 ```
 
-On télécharge les données avec deux résolutions spatio-temporelles différentes :
+Fishing effort data are downloaded with at separate spatio-temporal resolutions:
 
-1.  Les données de basse résolution spatiale (0.1°x0.1°) avec une résolution temporelle mensuelle.
+1.  Low spatial resolution (0.1°x0.1°) and monthly temporal resolution.
+2.  High spatial resolution (0.01°x0.01°) with a yearly temporal resolution.
 
 ```{r}
 #| label: gfw-monthly-low-import-fun
@@ -176,8 +181,6 @@ if (!file.exists(raw_file_path) | FORCE_DOWNLOAD_GFW) {
   gfw_data_ML <- read_csv(raw_file_path)
 }
 ```
-
-1.  Les données de haute résolution spatiale (0.01°x0.01°) avec une résolution temporelle annuelle.
 
 ```{r}
 #| label: gfw-yearly-high-import-fun
@@ -218,7 +221,7 @@ if (!file.exists(raw_file_path) | FORCE_DOWNLOAD_GFW) {
 }
 ```
 
-### Premier nettoyage
+### First cleaning
 
 ```{r}
 #| label: gfw-data-first-cleaning
@@ -235,9 +238,9 @@ gfw_data_ML <- gfw_data_ML |> first_cleaning_gfw_data()
 gfw_data_YH <- gfw_data_YH |> first_cleaning_gfw_data()
 ```
 
-### Jointures spatiales
+### Spatial joins
 
-On effectue plusieurs jointures spatiales des données. D'abord avec les polygones des ZEE afin d'attribuer l'effort dans les eaux de chaque pays côtiers. Puis avec les rasters.
+Effort data is joined spatially several times. First with the EEZ polygons in order to allocate fishing hours to the waters of each coastal state. Then with the raster.
 
 ```{r}
 #| label: gfw-data-spatial-join
@@ -289,16 +292,16 @@ if (!file.exists(joined_file_path) | FORCE_WRITE) {
 }
 ```
 
-La table "YEARLY HIGH" servira a l'étude de la pêche dans les eaux territoriales. On ne conserve donc pour la suite que l'effort fourni à moins de 200 nm des côtes.
+The "YEARLY HIGH" table will only be used for the study of fishing within territorial water. We then filter the effort that occured less than 200 nm from shore.
 
 ```{r}
 gfw_data_YH <- gfw_data_YH |> 
   filter(distance_to_shore_km <= 200 * 1.852)
 ```
 
-### Jointure avec les caractéristiques des navires
+### Joining with vessel characteristics
 
-On ajoute à chaque observation de pêche les caractéristiques (taille, puissance et tonnage) du navire. On filtre aussi le jeu de données d'informations pour ne conserver que les navires présent dans les données d'effort analysées.
+The characteristics (size, power, and tonnage) of the vessel are added to each fishing observation. The information dataset is also filtered to retain only those vessels present in the analyzed effort data.
 
 ```{r}
 #| label: gfw-data-add-vessels-info
@@ -336,7 +339,7 @@ vessels_info <- all_vessels_x_years |>
   relocate(vessel_name, .after = mmsi)
 ```
 
-On peut alors calculer l'effort apparent en kW.heures comme le produit de la puissance maximale du moteur par les heures de pêche apparentes :
+The apparent effort in kW.hours can then be calculated as the product of the maximum engine power and the apparent fishing hours:
 
 ```{r}
 
@@ -347,11 +350,11 @@ gfw_data_YH <- gfw_data_YH |>
   mutate(kWh = engine_power_kw_gfw * apparent_fishing_hours)
 ```
 
-### Nettoyage
+### Cleaning
 
-On ajoute / modifie plusieurs variables. On simplifie le label `gear_type` indiquant le type d'engin. La classification hiérarchique à 18 classes fournie par Global Fishing Watch est résumée en 8 classes :
+Several variables are added/modified. The `gear_type` label indicating the type of gear is simplified. The 18-class hierarchical classification provided by Global Fishing Watch is summarized into 8 classes:
 
-| Labels d'origine `gear_type` | Nouveau labels `gear_type` | Traduction française `gear_type_fr` |
+| Original labels `gear_type` | New labels `gear_type` | French translation `gear_type_fr` |
 |:----------------------:|------------------------|------------------------|
 | Fishing OR Other gear OR Inconclusive | Unknown | Inconnus |
 | Fishing / Seiners | Other seines | Autres sennes |
@@ -402,7 +405,7 @@ clean_gear_types <- function(gfw_data) {
 }
 ```
 
-On crée également des labels pour caractériser l'appartenance géopolitiques des pavillon et des zones de pêche. On distingue ainsi les ZEE de la haute mer, et l'appartenance des pavillons à l'Union Européenne, à une nation côtière de la zone FAO n°34 ou encore à l' "Afrique de l'Ouest", définie comme les pays africains de la zone FAO n°34.
+Labels are also created to characterize the geopolitical affiliation of flags and fishing zones. This distinguishes between EEZs on the high seas and flags belonging to the European Union, a coastal nation in FAO zone 34, or “West Africa,” defined as the African countries in FAO area 34.
 
 ```{r}
 #| label: gfw-data-add-geopo-labels-fun
@@ -453,7 +456,7 @@ add_political_labels <- function(gfw_data) {
 }
 ```
 
-On vérifie la validité des numéros IMO fournis par Global Fishing Watch. En plus d'être composés de sept chiffres, les numéros IMO des navires fonctionne avec un système de somme des chiffres permettant de vérifier leur validité. On somme les chiffres des 6 puissances de 10 les plus élevées (2 à 6), multipliés par ces dernières, et le chiffre des unités du résultat doit être le chiffre des unités du numéro IMO. Ex: 8820274. On a 8\*7 + 8\*6 + 2\*5 + 0\*4 + 2\*3 + 7\*2 = 134. 4 est aussi le chiffre des unités de 8820274. Ce numéro est valide.
+Validity of the IMO numbers provided by Global Fishing Watch is checked. In addition to being composed of seven digits, IMO numbers for vessels use a checksum system. The digits of the six highest powers of 10 (2 to 6) are added together, multiplied each by their power of 10, and the units digit of the result must be the units digit of the IMO number. Example: 8820274. We have 8x7 + 8x6 + 2x5 + 0x4 + 2x3 + 7x2 = 134. 4 is also the units digit of 8820274. This number is valid.
 
 ```{r}
 #| label: gfw-data-imo-checksum-fun
@@ -485,7 +488,7 @@ checksum_imo <- function(numbers) {
 }
 ```
 
-On ajoute nettoie ici les types d'engin, on ajoute les labels relatifs aux états et au type de pêche (distante ou domestique), on extrait l'année à partir de `time_range` et on vérifie les numéros IMO.
+Here, we clean the types of vessel, add labels relating to the states and type of fishing (distant water or domestic), extract the year from `time_range`, and check the IMO numbers.
 
 ```{r}
 #| label: gfw-data-clean-labels
@@ -503,7 +506,7 @@ gfw_data_ML <- gfw_data_ML |> clean_labels_gfw_data()
 gfw_data_YH <- gfw_data_YH |> clean_labels_gfw_data()
 ```
 
-On réorganise les colonnes.
+Columns are rearranged.
 
 ```{r}
 #| label: gfw-data-relocate-columns
@@ -532,9 +535,9 @@ gfw_data_ML <- gfw_data_ML |> relocate_gfw_data()
 gfw_data_YH <- gfw_data_YH |> relocate_gfw_data()
 ```
 
-Enfin les données sont filtrées. On ne conserve que le type de navire "FISHING", afin d'exclure l'effort apparent des navires qui ne sont pas considérés comme des navires de pêche par Global Fishing Watch. Les colonnes relatives à l'entrée du navire puis à sa sortie de la cellule, ainsi que celles concernant sa période de transmission AIS sont retirées.
+Finally, the data is filtered. Only vessels classified as “FISHING” are retained, in order to exclude the apparent effort of vessels that are not considered fishing vessels by Global Fishing Watch. The columns relating to the vessel's entry and exit from the cell, as well as those concerning its AIS transmission period, are removed.
 
-Surtout, on applique des limites sur la distance entre l’évènement de pêche et le port de départ (5 km) et le nombre minimum d'heure de pêche d'un navire (2000 heures en 5 ans). Le temps de pêche individuel peut être calculé par identifiant Global Fishing Watch (`vessel_id` ), numéro MMSI ou numéro IMO. Le premier cas a tendance a sous-estimer le temps de pêche puisqu'un même numéro MMSI peut être associé à plusieurs `vessel_id`. Le dernier cas est idéal mais les données sur les numéros IMO sont très lacunaires. On choisit donc le numéro MMSI.
+Above all, limits are applied to the distance between the fishing event and the closest port (5 km) and the minimum number of fishing hours for a vessel (2,000 hours in 5 years). Individual fishing time can be calculated by Global Fishing Watch identifier (`vessel_id`), MMSI number, or IMO number. The first case tends to underestimate fishing time since the same MMSI number can be associated with several `vessel_id`s. The last case is ideal, but data on IMO numbers is very incomplete. We therefore choose the MMSI number.
 
 ```{r}
 clean_gfw_data <- function(gfw_data,                                 # GFW apparent fishing effort data after spatial joins
@@ -604,7 +607,7 @@ gfw_ds_YH <- clean_gfw_data(gfw_data_YH,
                             save_small_efforts = FALSE)
 ```
 
-On sauvegarde les deux jeux de données d'effort :
+The two datasets are save as .rds files:
 
 ```{r}
 #| label: save-gfw-effort-ds
@@ -630,11 +633,11 @@ rm(list = setdiff(ls()[grepl("gfw", ls())], lsf.str()))
 effort <- readRDS("output/clean_data/_temp/gfw_effort_FAO34_ML_0.rds")$clean_effort
 ```
 
-## Propriété
+## Ownership
 
-### Génération d'une liste de navires pour la recherche
+### Generating a list of vessels for identity and ownership investigation
 
-On part des données d'effort de pêche apparent Global Fishing Watch pour établir un classement des `vessel_id`'s ayant pêché le plus dans la zone FAO n°34 entre 2020 et 2024. On conserve les informations fournies par Global Fishing Watch sur l'identité de ces navires (identifiant GFW, MMSI, IMO, call sign, pavillon...).
+We use the apparent fishing effort dataset ("MONTHLY LOW") to rank `vessel_id`'s by decreasing number of fishing hours (in the FAO 34 area between 2020 and 2024). We then save this ranking, including all the available identity information (GFW identifier, MMSI, IMO, vessel name, call sign, flag).
 
 ```{r}
 #| label: ownership-vessel-list
@@ -654,13 +657,17 @@ write.xlsx(vessels,
            "output/data/ownership/vessel_ranking_for_ownership_FAO34.xlsx")
 ```
 
-Cette liste est ensuite complétée manuellement avec les informations de la base de données GISIS (numéros IMO et entreprises propriétaires). Une part de la recherche comprend aussi la comparaison des traces AIS de `vessel_id`'s qu'on suspecte d'être le même navire. Cette comparaison est effectué via le "Vessel Viewer" de Global Fishing Watch (Lien : <https://globalfishingwatch.org/map/vessel-search>). On utilise des sites tels que MarineTraffic (Lien : [https://www.marinetraffic.com](https://www.marinetraffic.com/)) pour enquêter sur l'identité des navires.
+### Manual identity investigation
 
-La précision nécessite d'utiliser les `vessel_id`'s comme identifiants, et non les numéros MMSI. Ceci augmente quelque peu le nombre d'individus à identifier. On mène les recherches d'identité sur GISIS pour l'ensemble des `vessel_id`'s avec plus de 2000 heures de pêche apparente entre 2020 et 2024 dans la zone FAO n°34. Puisque plusieurs `vessel_id`'s peuvent être rattachés à un seul numéro MMSI, une part des navires conservés dans le jeu d'effort `gfw_ds_ML$clean_effort` n'a pas été examinée. Il est cependant attendu que les navires sont examinés soient individuellement de plutôt faibles contributeurs à l'effort de pêche apparent total.
+This list is then manually supplemented with information from the [GISIS: Ship and Company Particulars](https://gisis.imo.org/Public/SHIPS/Default.aspx) database. The goal is to assign an IMO numbers (and if available a direct owner company) to each `vessel_id`.
 
-### Listes de numéros IMO et entreprises propriétaires pour requête ORBIS
+Part of the research also involves comparing the AIS tracks of `vessel_id`'s suspected of being the same vessel. This comparison is carried out using Global Fishing Watch's [Vessel Viewer](https://globalfishingwatch.org/map/vessel-search). Sites such as [MarineTraffic](https://www.marinetraffic.com) are used to investigate the identity of vessels.
 
-La base de données complétée est ensuite traitée pour crée une liste des IMO et une liste des entreprises propriétaires, qui serviront de bases aux requêtes ORBIS.
+Accuracy requires the use of `vessel_id`s as identifiers, rather than MMSI numbers. This slightly increases the number of individuals to be identified. Identity searches are conducted on GISIS for all `vessel_id`s with more than 2,000 hours of apparent fishing between 2020 and 2024 in FAO area 34. Since several `vessel_id`s can be linked to a single MMSI number, some of the vessels retained in the `gfw_ds_ML$clean_effort` effort dataset have not been examined. However, it is expected that the vessels not examined be rather small contributors to the total apparent fishing effort.
+
+### IMO number / sirect owner lists for ORBIS query
+
+The supplemented ranking is then treated to create two lists: one of IMO numbers and one of GISIS-based direct owners. Those list will be used as input for two separate ORBIS queries.
 
 ```{r}
 path <- "data/ownership/vessel_ranking_for_ownership_FAO34_completed.xlsx"
@@ -732,9 +739,9 @@ writeData(wb, "owners_list", owners_list)
 saveWorkbook(wb, "output/data/ownership/vessel_ranking_for_ownership_FAO34_completed_processed.xlsx", overwrite = TRUE)
 ```
 
-### Nettoyage
+### Cleaning
 
-Les deux listes (numéros IMO et noms des entreprises propriétaires) sont utilisées comme requêtes dans la base de données ORBIS de Bureau Van Dijk. Le résultats est pré-traité à la main. On transforme ensuite les données pour obtenir une base de données de propriété harmonisée. On utilise en priorité les informations obtenues via ORBIS, et en second recourt celles obtenues depuis GISIS.
+Both lists (IMO numbers and names of owner companies) are used as queries in [Bureau Van Dijk's ORBIS](https://promo.globaldatabase.com/bvd/?utm_term=orbis%20bureau%20van%20dijk&utm_campaign=Bureau+van+Dijk&utm_source=adwords&utm_medium=ppc&hsa_acc=1811458963&hsa_cam=21662561486&hsa_grp=167632491515&hsa_ad=712026503454&hsa_src=g&hsa_tgt=kwd-355591263295&hsa_kw=orbis%20bureau%20van%20dijk&hsa_mt=p&hsa_net=adwords&hsa_ver=3&gad_source=1&gad_campaignid=21662561486&gclid=CjwKCAjw6vHHBhBwEiwAq4zvAzAGsaBVIIBd5PpPhVu2bRp-Lfi9hUx4YTSxdNsizwo-9fBB2cJ2yBoCTb4QAvD_BwE) database. The results are pre-processed manually. The data is then transformed manually to obtain a harmonized ownership database. Priority is given to information obtained via ORBIS, with information obtained from GISIS used as a secondary source.
 
 ```{r}
 
@@ -858,7 +865,7 @@ ownership <- ownership |>
   )
 ```
 
-On ajoute deux informations sur la propriété obtenues séparément : Altantic Shrimpers Ltd est possédé par le néerlandais Cornelis Vrolijk et HISEPEC est la propriété de l'espagnol PEIRERA GROUP.
+Two pieces of information about ownership obtained separately are added: *Altantic Shrimpers Ltd* is owned by the Dutch *Cornelis Vrolijk* and *HISEPEC* is owned by the Spanish *PEIRERA GROUP*.
 
 ```{r}
 # Adding info about Atlantic Shrimpers and HISEPEC
@@ -866,8 +873,7 @@ mapping <- tibble(
   guo_name_pattern = c("ATLANTIC SHRIMPERS LTD", "HISEPEC"),
   new_guo_name = c("CORNELIS VROLIJK HOLDING B.V.", "PEREIRA GROUP"),
   new_iso3 = c("NLD", "ESP"),
-) |> 
-  mutate(new_guo_confidence = "A vérifier")
+)
 
 ownership <- ownership |> 
   rowwise() |> 
@@ -883,7 +889,7 @@ ownership <- ownership |>
   ungroup()
 ```
 
-On rattrape une erreur dans la base de données :
+Catching an error in the database:
 
 ```{r}
 ownership <- ownership |> 
@@ -893,14 +899,14 @@ ownership <- ownership |>
   ))
 ```
 
-On renomme la variable du numéro IMO pour plus de clarté :
+Rename the IMO number variable for clarity:
 
 ```{r}
 ownership <- ownership |> 
   rename(assigned_imo = imo)
 ```
 
-Sauvegarde pour utilisation autre :
+Save for later use:
 
 ```{r}
 write.xlsx(ownership,
@@ -913,7 +919,7 @@ rm(list = c("effort", "vessels"))
 rm(list = ls()[grepl("imo|table|orbis|matches|owners_list|mapping", ls())])
 ```
 
-### Jointure avec les données d'effort de pêche
+### Joining with apparent fishing effort data
 
 ```{r}
 join_ownership <- function(gfw_ds,
@@ -971,21 +977,19 @@ if (!file.exists("output/clean_data/_temp/gfw_effort_FAO34_YH_1.rds") | FORCE_WR
 ```
 
 ```{r}
-#| include: false
-
 rm(list = setdiff(ls()[grepl("gfw", ls())], lsf.str()))
 gc()
 ```
 
-## Captures reconstruites et évaluations
+## Reconstructed catches and stock assessments
 
-### Captures reconstruites du Sea Around Us
+### Reconstructed catches from Sea Around Us
 
-On assembles les jeux de données de captures reconstruites du Sea Around Us (Lien : <https://www.seaaroundus.org>). Ces données correspondent aux captures spatialisées du Sea Around Us contenues dans 3 polygones : la zone FAO n°34, le LME du courant des Canaries (LME n°27) et le LME du courant de Guinée (LME n°28).
+We compile the reconstructed catch datasets from the [Sea Around Us](https://www.seaaroundus.org) project. These data correspond to the Sea Around Us spatialized catches contained within three polygons: FAO area 34, the Canary Current LME (LME 27), and the Guinea Current LME (LME 28).
 
-Puisque les LME sont presque entièrement inscrits dans la zone FAO, on déduit les captures des LME de celles de la zone FAO. Ceci donne les captures en haute mer, par opposition aux captures des LMEs, qui recouvrent l'essentiel des ZEE et la totalité du plateau continental de la région.
+Since the LMEs are almost entirely inscribed in the FAO area, we deduct the LME catches from those of the FAO area. This gives the catches on the high seas, as opposed to the catches in the LMEs, which cover most of the EEZs and the entire continental shelf of the region.
 
-Puisque les LME ne sont pas entièrement inscrits dans la zone FAO (en particulier le LME n°28), on ne conserve que les valeurs positives ou nulles pour la haute mer.
+Since the LMEs are not entirely inscribed in the FAO zone (in particular LME 28), negative values are generated when computing the high seas catches. In those cases the high seas catch is set to 0 t for the taxon.
 
 ```{r}
 
@@ -1085,7 +1089,7 @@ catch <- rbind(
 rm(list = c("catch_high_seas", "catch_lme", "catch_lme_tot", "catch_lme27", "catch_lme28", "catch_tot", "cols", "files", "n"))
 ```
 
-On ne conserve que les captures associées à la pêche industrielle pour la période 2014-2019 :
+Only the catch of the "Industrial" sector during the 2015-2019 period is kept:
 
 ```{r}
 catch <- catch |> 
@@ -1093,28 +1097,28 @@ catch <- catch |>
   filter(year >= 2015, year <= 2019)
 ```
 
-### Jointure avec les évaluations du COPACE et de la CICTA
+### Joining with CECAF and ICCAT stock assessments
 
-On charge les données d'évaluations issues des rapports du groupe d'experts FAO-COPACE (`cecaf`) et de la Commission internationale pour la conservation des thonidés de l'Atlantique (CICTA; `iccat`). Les données du COPACE viennent des rapports des sous-groupes nord et sud, pour les petits pélagiques d'une part et pour les espèces démersales d'autre part. Lorsque plusieurs stocks sont contenus dans la région d'un même sous-groupe, on les agrège en un seul. Le statut de l'évaluation pour ce "super-stock" est hérité des stocks réels : si tous les stocks ont le même statut, celui-ci est repris; sinon on garde le statut associé au stock avec le plus de captures déclarées à la FAO l'année de l'évaluation. Dans le second cas le statut est précédé du mot "Principalement".
+Assessment data from reports by the FAO-CECAF expert group and the International Commission for the Conservation of Atlantic Tunas (ICCAT) are loaded. The CECAF data comes from the reports of the northern and southern sub-groups, for small pelagics on the one hand and demersal species on the other. When several stocks are contained within the same sub-group region, they are aggregated into a single stock. The assessment status for this “super-stock” is inherited from the actual stocks: if all stocks have the same status, this status is retained; otherwise, the status associated with the stock with the highest catches reported to the FAO in the year of the assessment is retained. In the latter case, the status is preceded by the word “Mainly.”
 
 ```{r}
 cecaf <- read.xlsx("data/iccat_cecaf_stock_evaluations.xlsx", sheet = "cecaf_clean")  |> clean_names()
 iccat <- read.xlsx("data/iccat_cecaf_stock_evaluations.xlsx", sheet = "iccat_clean") |> clean_names()
 ```
 
-On joint les données d'évaluation aux données de captures. Puisque les régions des sous-groupes du COPACE correspondent presque parfaitement aux LME n°27 (sous-groupe nord) et 28 (sous-groupe sud), on joint les captures d'un LME aux évaluations du sous-groupe correspondant. On utilise le nom scientifique des espèces comme clé de jointure.
+The assessment data is joined to the catch data. Since the CECAF sub-group regions correspond almost perfectly to LMEs 27 (northern subgroup) and 28 (southern subgroup), the stocks fished in an LME are allocated the assessments of the corresponding subgroup. The scientific name of the species is used as the join key within the LME-subgroup subset.
 
-Dans le cas des évalutions du COPACE, il arrive qu'un stock ne soit pas défini au niveau spécifique, mais plutôt au niveau du genre (ex : *Sepia spp.*) ou de la famille (ex : *Sparidae*). Il arrive même qu'un stock soit défini pour une espèce (ex: *Penaeus notialis* du sous-groupe sud) et qu'un autre soit défini pour le genre de cette espèce, dans la mêmel sous-région (*Penaeus spp.* au sud).
+In the case of CECAF assessments, a stock may not be defined at the specific level, but rather at the genus level (e.g., *Sepia* spp.) or family level (e.g., *Sparidae*). In some cases, one stock is defined for a species (e.g., *Penaeus notialis* in the southern subgroup) and another is defined for the genus of that species in the same subregion (*Penaeus* spp. in the south).
 
-Les captures du Sea Around Us sont aussi définies à des niveaux taxonomiques variables. Pour leur attribuer des évaluations du COPACE, on procède de la façon suivante :
+To assign them CECAF assessments, we proceed as follows. For each LME-CECAF subgroup pair:
 
-Pour chaque couple LME - sous-groupe COPACE :
+1.  We perform an initial join on the full scientific name (exact_match).
+2.  The remaining catches are joined on the first part of the name (higher_level_match). In addition to catches defined at the genus level, catches defined at the species level but not associated in exact_match can be associated.
+3.  These tables are then stacked.
 
-1.  On effectue une première jointure sur le nom scientifique complet (`exact_match`)
-2.  On effectue une jointure des captures *restantes* sur la première partie du nom (`higer_level_match`). En plus des captures définies au niveau du genre, les captures définies au niveau spécifiques mais non associées dans `exact_match` peuvent être associées.
-3.  On fait l'union de ces tables
+For ICCAT assessments, stocks are always defined at the species level. Joins are made only on the full scientific name.
 
-Pour les évaluations de la CICTA, les stocks sont toujours définies au niveau spécifique. On joint uniquement sur le nom scientifique complet.
+Sea Around Us catches are also defined at varying taxonomic levels (cf. next paragraph).
 
 ```{r}
 
@@ -1223,7 +1227,6 @@ match_iccat_assessment <- function(sau_catch, iccat) {
     dplyr::select(-c(species, catch_taxa_higher, catch_taxa_lower))
   
   # No higher level match bc. all assessments are at the species level
-  # /!\ Note: We cannot state the level of (over-)exploitation when the catch is less precise taxonomically than the assessments
   
   return(catch)
 
@@ -1233,9 +1236,11 @@ catch <- match_cecaf_assessment(catch, cecaf)
 catch <- match_iccat_assessment(catch, iccat)
 ```
 
-Les captures pour lesquelles le niveau taxonomique est moins précis que celui employé par les groupes d'experts ne sont pas associées. On leur associe le label "Match impossible" pour faire la différence entre l'incertitude liée à la reconstruction et l'absence d'évaluation.
+Catches for which the taxonomic level is less precise than the one used by the expert groups are not matched. They are labeled as “Match impossible” to distinguish between uncertainty related to reconstruction and the absence of evaluation.
 
-Les taxons contenant "not identified" dans leur nom sont directement catégorisés comme matchs impossibles. Pour les captures des taxons en "un seul mot", i.e. identifiés à un niveau plus haut que l'espèce, on assigne la catégories "Match impossible" si le taxon capturé est contenu dans la lignée du taxon évalué, et "Non évalué" sinon.
+-   Taxa containing “not identified” in their name are directly categorized as impossible matches.
+
+-   For catches of “single-word” taxa, i.e., identified at a level higher than the species, the category “Match impossible” is assigned if the captured taxon is contained in the lineage of an assessed taxon (i.e. higher taxonomic resolution of the assessment), and “Non évalué" otherwise.
 
 ```{r}
 
@@ -1353,7 +1358,7 @@ if (!SKIP_CATCH) {
 }
 ```
 
-Enfin, on harmonise les évaluations officielles avec un label unique :
+Eventually the official assessments are harmonized with a unique label variable:
 
 ```{r}
 
@@ -1394,7 +1399,7 @@ if (!SKIP_CATCH) {
 }
 ```
 
-On ajoute un label permettant de distinguer les stocks avec au moins un indicateur de surexploitation ("surexploité" ou "surpêché" ou "dégradé"), des stocks qui n'en ont pas. On conserve les labels "Non évalué" et "Match impossible".
+The final overexploitaiton label is edited to distinguish between stocks with at least one overpoitation indicator ("surexploité" or "surpêché" or "dégradé"), from stocks having none. This final label contains the mention "probable" to underline its aggregated and uncertain nature. "Non évalué" and "Match impossible" values are kept as is.
 
 ```{r}
 
@@ -1411,7 +1416,7 @@ if (!SKIP_CATCH) {
 }
 ```
 
-### Sauvegarde
+### Saving
 
 ```{r}
 if (!SKIP_CATCH) {saveRDS(catch, "output/clean_data/catch.rds")}
@@ -1422,9 +1427,9 @@ rm(list = ls()[grepl("impossible|cecaf|iccat|catch", ls())])
 gc()
 ```
 
-## Effort apparent des chaluts de fonds Global Fishing Watch
+## Global Fishing Watch apparent trawling effort
 
-On charge des données non publiées fournies par Global Fishing Watch. Il s'agit de l'effort de pêche de la flotte mondiale de chalutier visibles par AIS de 2020 à 2023. Peu importe le navire, chaque observation de temps de pêche est catégorisée en "chalutage de fond", "chalutage pélagique" ou "autre". La résolution spatiale est de 0.1°x0.1° et la résolution temporelle est d'un mois.
+We load unpublished data provided by Global Fishing Watch. This is the fishing effort of the global trawler fleet visible by AIS from 2020 to 2023. Regardless of the vessel, each fishing time observation is categorized as “bottom trawling,” “pelagic trawling,” or “other.” The spatial resolution is 0.1°x0.1° and the temporal resolution is one month.
 
 ```{r}
 #| include: false
@@ -1435,16 +1440,16 @@ raw_bottom_trawling <- lapply(trawling_files, read_csv) |>
   bind_rows()
 ```
 
-### Premier nettoyage
+### First cleaning
 
-En raisons des moins bonnes performances du modèle sur la classe "chalutage pélagique" on ne conserve que les observations de chalutage de fond.
+Due to the poorer performance of the model in the “pelagic trawling” class, only bottom trawling observations are retained.
 
 ```{r}
 bottom_trawling <- raw_bottom_trawling |> 
   filter(label == "bottom_trawling")
 ```
 
-On applique un filtre spatial sur les données afin de ne garder que l'effort fourni dans la zone FAO n°34.
+A spatial filter is applied to the data in order to retain only the effort made in FAO area 34.
 
 ```{r}
 # First filter based on bounding box (faster)
@@ -1465,7 +1470,7 @@ bottom_trawling <- bottom_trawling |>
   st_drop_geometry()
 ```
 
-On renomme les colonnes pour obtenir des données similaires aux données d'effort de pêche apparent traitées précédemment.
+The columns are renamed to obtain data similar to the apparent fishing effort data processed previously.
 
 ```{r}
 bottom_trawling <- bottom_trawling |> 
@@ -1491,7 +1496,7 @@ bottom_trawling <- bottom_trawling |>
     distance_trawled_km)
 ```
 
-Le nettoyage est similaire à celui des données d'effort de pêche apparent Global Fishing Watch. Il est légèrement plus simple puisque les données de chalutage ne contiennent pas d'attribut `gear_type`, ni de numéro IMO, nom de navire ou call sign.
+Cleaning is similar to that of Global Fishing Watch apparent fishing effort data. It is slightly simpler since trawling data does not contain a `gear_type` attribute, IMO number, vessel name, or call sign.
 
 ```{r}
 bottom_trawling <- bottom_trawling |> 
@@ -1516,7 +1521,7 @@ bottom_trawling <- bottom_trawling |>
   )
 ```
 
-On termine par ne conserver que l'effort satisfaisant les seuils `min_dist` et `min_hours`, comme pour l'effort de pêche apparent Global Fishing Watch.
+We keep the effort that meets the `min_dist` and `min_hours` thresholds, as with the apparent fishing effort from Global Fishing Watch.
 
 ```{r}
 bottom_trawling_ds <- clean_gfw_data(
@@ -1528,7 +1533,7 @@ bottom_trawling_ds <- clean_gfw_data(
 )
 ```
 
-### Jointure avec les données de propriété
+### Joining with ownership data
 
 ```{r}
 ownership_by_mmsi <- ownership |> 
@@ -1545,11 +1550,11 @@ bottom_trawling_ds <- join_ownership(
 )
 ```
 
-### Largeur de l'équipement en contact avec le sol
+### Bottom gear width
 
-On s'appuye sur les travaux d'Eigaard et al. (2016) qui modélise la largeur d'ouverture des chaluts de fonds en fonction des caractéristiques des navires.
+We draw on the work of Eigaard et al. (2016), which models the opening width of bottom trawls based on vessel characteristics.
 
-Les modèles d'Eigaard et al. sont ajustés par "métiers BENTHIS". Ces catégories sont crées en combinant l'engin (ex: chalut à panneaux, à perche, senne démersale), et les catégories d'espèces ciblées (ex : crustacés, poissons démersaux).
+The models developed by Eigaard et al. are adjusted using “BENTHIS métiers” These categories are created by combining the gear (e.g., otter trawl, beam trawl, demersal seine) and the categories of target species (e.g., crustaceans, demersal fish).
 
 ```{r}
 
@@ -1563,13 +1568,13 @@ eigaard <- read_csv("data/eigaard/BENTHIS_otter_trawl_data.csv") |> clean_names(
 #   geom_histogram()
 ```
 
-En l'absence d'informations précises on fait deux hypothèses. On suppose d'abord que la totalité des chaluts de fonds employés dans la zone FAO n°34 sont des chaluts à panneaux. De plus, on assigne à tous les chalutiers le métier "OT_MIX". C'est la catégorie la plus large en terme d'espèces ciblées.
+In the absence of precise information, two assumptions are made. First, it is assumed that all bottom trawls used in FAO zone 34 are otter trawls. In addition, all trawlers are assigned the OT_MIX gear type. This is the broadest category in terms of target species.
 
-Q : On sait que la flotte appartenant à Atlantic Shrimpers Ltd est composée exclusivement de chaluts à panneaux visant la crevette. Il serait envisageable d'adapter le métier BENTHIS pour cette flotte, en choisissant plutôt OT_CRU, OT_MIX_CRU ou OT_MIX_CRU_DMF. Sans pouvoir choisir entre ces catégories pour l'instant, on conserve OT_MIX pour l'ensemble des chalutiers.
+We know that the fleet belonging to Atlantic Shrimpers Ltd consists exclusively of shrimp trawlers. It would be possible to adapt the BENTHIS métier for this fleet, choosing OT_CRU, OT_MIX_CRU, or OT_MIX_CRU_DMF instead. Without being able to choose between these categories, we retain OT_MIX for all trawlers for now.
 
-On peut alors calculer la surface balayée par observation de chalutage de fond.
+We can then calculate the area covered by bottom trawling observations.
 
-Pour estimer une empreinte spatiale conservative du chalutage de fond, on assigne aussi une ouverture conservative entre les panneaux de 25 m.
+To estimate a conservative spatial footprint for bottom trawling, we also assign a conservative opening between the doors of 25 m.
 
 ```{r}
 
@@ -1596,7 +1601,7 @@ bottom_trawling_ds$clean_effort <- bottom_trawling_ds$clean_effort |> add_bottom
 bottom_trawling_ds$small_efforts <- bottom_trawling_ds$small_efforts |> add_bottom_impact()
 ```
 
-Afin de pouvoir comparer la surface chalutée dans une cellule à la surface de la cellule, on calcule celle-ci. En effet la surface d'une cellule aux dimensions définies en degrés varie entre autre avec la latitude. On utilise le package R `geosphere`.
+In order to compare the area trawled in a cell with the area of the cell, the latter is calculated. This is because the area of a cell with dimensions defined in degrees varies depending on factors such as latitude. The `geosphere` package is used for this purpose.
 
 ```{r}
 library(geosphere)
@@ -1632,9 +1637,9 @@ bottom_trawling_ds$small_efforts <- bottom_trawling_ds$small_efforts |>
   ungroup()
 ```
 
-### Construction d'une grille au dessus du plateau continentale
+### Laying a grid above the continental shelf
 
-Afin de pouvoir calculer les statistiques de l'empreinte spatiale - notamment les proportions des surfaces - on crée une grille complète au dessus du plateau continental (approximé comme les zones de bathymétrie \>= 1000 m).
+In order to calculate spatial footprint statistics - particularly surface area proportions - a complete grid is created above the continental shelf (approximated as regions with bathymetry \>= 1000 m).
 
 ```{r}
 #| include: false
@@ -1677,7 +1682,7 @@ shelf_grid <- shelf_grid |>
 bottom_trawling_ds$shelf_grid <- shelf_grid
 ```
 
-### Sauvegarde
+### Saving
 
 ```{r}
 saveRDS(bottom_trawling_ds, "output/clean_data/bottom_trawling.rds")
@@ -1690,9 +1695,9 @@ rm(list = ls()[grepl("bottom|ownership|vessel", ls())])
 gc()
 ```
 
-## Pêche proche des côtes
+## Fishing close to shore
 
-On ajoute des labels caractérisant la pêche dans des zones proches des côtes (bandes des 12 milles ou zones de restrictions). Ces labels sont ajoutés aux jeu de donnée d'effort de pêche à haute résolution spatiale.
+Labels characterizing fishing in coastal areas (12-mile bands or restricted areas) are added. These labels are added to the high spatial resolution fishing effort dataset.
 
 ```{r}
 
@@ -1738,7 +1743,7 @@ inshore_fishing_ds$clean_effort <- inshore_fishing_ds$clean_effort |>
   )
 ```
 
-On crée un sous-ensemble sans les eaux internationales et contenant uniquement l'effort des chalutiers, moins lourd à charger.
+We create a subset that excludes international waters and contains only trawler effort, which is less cumbersome to load.
 
 ```{r}
 
@@ -1746,7 +1751,7 @@ inshore_fishing_shelf <- inshore_fishing_ds$clean_effort |>
   filter(!is.na(eez_iso3c), gear_type == "Trawls")
 ```
 
-### Sauvegarde
+### Saving
 
 ```{r}
 saveRDS(inshore_fishing_ds, "output/clean_data/inshore_fishing.rds")

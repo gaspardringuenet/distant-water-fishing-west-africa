@@ -1,0 +1,28 @@
+---
+title: "Progress tracking"
+---
+
+## Preprocessing
+- [x] Translate the notebook's text to english
+- [ ] Run entire notebook with `FORCE_WRITE`, `FORCE_DOWNLOAD_GFW` set to `TRUE` and `SKIP_CATCH` set to `FALSE`.
+- [ ] Translate labels to english
+
+
+## Production
+- [ ] Translate the notebook's text to english
+- [ ] Run one time to check compatibility with preprocessing
+- [ ] Clean code
+
+## Manuscript
+- [ ] Create document from academic article template
+- [ ] Select angle and write short outline
+### Intro
+- [ ] Write first intro draft
+### Material and methods
+- [ ] Write first material and methods draft
+- [ ] Write Supplementary Material
+### Results
+- [ ] Write first results draft
+### Discussion
+- [ ] Write first discussion draft
+

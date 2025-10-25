@@ -32,3 +32,6 @@ data/
 # Figures / tables
 figures/
 tables/
+
+/.quarto/
+**/*.quarto_ipynb
