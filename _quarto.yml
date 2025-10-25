@@ -14,13 +14,24 @@ website:
       #- href: 2-manuscript
       #  text: Manuscript
 
+project:
+  type: manuscript
+
+manuscript:
+  article: index.qmd
+
 format:
   html:
-    theme:
-      - cosmo
-      - brand
-    css: styles.css
-    toc: true
+    comments:
+      hypothesis: true
+  docx: default
+  jats: default
+
+  # (other formats)
+  # pdf: default
+
+execute:
+  freeze: true
 
 
 

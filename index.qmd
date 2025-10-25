@@ -16,13 +16,17 @@ title: "Progress tracking"
 ## Manuscript
 - [ ] Create document from academic article template
 - [ ] Select angle and write short outline
-### Intro
+
+#### Intro
 - [ ] Write first intro draft
-### Material and methods
+
+#### Material and methods
 - [ ] Write first material and methods draft
 - [ ] Write Supplementary Material
-### Results
+
+#### Results
 - [ ] Write first results draft
-### Discussion
+
+#### Discussion
 - [ ] Write first discussion draft
 
