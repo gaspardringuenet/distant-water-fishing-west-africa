@@ -1,7 +1,0 @@
----
-title: "Remerciements"
-numbered: false
-format: pdf
----
-
-...
