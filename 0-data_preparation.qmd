@@ -1,19 +1,5 @@
 ---
 title: "Data preprocessing"
-
-project:
-  execute-dir: project
-
-format:
-  html:
-    theme:
-      - cosmo
-      - brand
-    css: styles.css
-    toc: true
-
-execute:
-  freeze: auto
 ---
 
 ```{r}
@@ -665,7 +651,7 @@ Part of the research also involves comparing the AIS tracks of `vessel_id`'s sus
 
 Accuracy requires the use of `vessel_id`s as identifiers, rather than MMSI numbers. This slightly increases the number of individuals to be identified. Identity searches are conducted on GISIS for all `vessel_id`s with more than 2,000 hours of apparent fishing between 2020 and 2024 in FAO area 34. Since several `vessel_id`s can be linked to a single MMSI number, some of the vessels retained in the `gfw_ds_ML$clean_effort` effort dataset have not been examined. However, it is expected that the vessels not examined be rather small contributors to the total apparent fishing effort.
 
-### IMO number / sirect owner lists for ORBIS query
+### IMO number / direct owner lists for ORBIS query
 
 The supplemented ranking is then treated to create two lists: one of IMO numbers and one of GISIS-based direct owners. Those list will be used as input for two separate ORBIS queries.
 

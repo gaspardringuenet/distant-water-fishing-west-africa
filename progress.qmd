@@ -7,15 +7,15 @@ title: "Progress tracking"
 - [ ] Run entire notebook with `FORCE_WRITE`, `FORCE_DOWNLOAD_GFW` set to `TRUE` and `SKIP_CATCH` set to `FALSE`.
 - [ ] Translate labels to english
 
-
 ## Production
 - [ ] Translate the notebook's text to english
 - [ ] Run one time to check compatibility with preprocessing
 - [ ] Clean code
 
 ## Manuscript
-- [ ] Create document from academic article template
+- [x] Create document from academic article template
 - [ ] Select angle and write short outline
+- [ ] Publish the manuscript online for comments
 
 #### Intro
 - [ ] Write first intro draft

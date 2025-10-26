@@ -1,24 +1,16 @@
 project:
-  type: website
-
-website:
-  title: "Distant water fishing in western Africa"
-  navbar:
-    left:
-      - href: index.qmd
-        text: Home
-      - href: 0-data_preparation.qmd
-        text: Preprocessing
-      #- href: 1-production_resultats.qmd
-      #  text: Production
-      #- href: 2-manuscript
-      #  text: Manuscript
-
-project:
   type: manuscript
 
+execute:
+  freeze: true
+
 manuscript:
-  article: index.qmd
+  article: 2-manuscript.qmd
+  notebooks:
+    - notebook: progress.qmd
+      title: Paper progress tracking
+    - notebook: 0-data_preparation.qmd
+      title: Data Preprocessing
 
 format:
   html:
@@ -26,12 +18,16 @@ format:
       hypothesis: true
   docx: default
   jats: default
+  pdf: default
 
-  # (other formats)
-  # pdf: default
-
-execute:
-  freeze: true
+crossref:
+  custom:
+    - kind: float
+      key: suppfig
+      latex-env: suppfig
+      reference-prefix: Figure S
+      space-before-numbering: false
+      latex-list-of-description: Supplementary Figure
 
 
 
